@@ -10,9 +10,9 @@
 
  - add boolean property to turn off layer switching. We will use this from inside mapmanager to have it just listen to a single point layer that we create with code.
  
- - Figure out how to manager key press events in magicgui table. If we can't do it then use a derived QTableView with a proper data model.
+ - Figure out how to manage key press events in magicgui table. If we can't do it then use a derived QTableView with a proper data model.
 
- - Get it to work with 3d points
+ - Get it to work with 2d points
 
 
 ## Keep track of a layer
