@@ -1,0 +1,35 @@
+name: napari-layer-table
+display_name: Layer Table
+contributions:
+  commands:
+    - id: napari-layer-table.get_reader
+      python_name: napari_layer_table._reader:napari_get_reader
+      title: Open data with Layer Table
+    - id: napari-layer-table.make_sample_data
+      python_name: napari_layer_table._sample_data:make_sample_data
+      title: Load sample data from Layer Table 
+    - id: napari-layer-table.make_qwidget
+      python_name: napari_layer_table._widget:ExampleQWidget
+      title: Make example QWidget
+    - id: napari-layer-table.make_magic_widget
+      python_name: napari_layer_table._widget:example_magic_widget
+      title: Make example magic widget
+    - id: napari-layer-table.make_func_widget
+      python_name: napari_layer_table._widget:example_function_widget
+      title: Make example function widget 
+  readers:
+    - command: napari-layer-table.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.npy']  
+  sample_data:
+    - command: napari-layer-table.make_sample_data
+      display_name: Layer Table
+      key: unique_id.1 
+  widgets:
+    - command: napari-layer-table.make_qwidget
+      display_name: Example QWidget
+    - command: napari-layer-table.make_magic_widget
+      display_name: Example Magic Widget
+    - command: napari-layer-table.make_func_widget
+      autogenerate: true
+      display_name: Example Function Widget 

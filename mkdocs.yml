@@ -1,0 +1,11 @@
+site_name: napari-layer-table
+site_description: A plugin to display a layer as a table.
+site_author: Cudmore Lab
+
+theme: readthedocs
+
+
+repo_url: https://github.com/mapmanager/napari-layer-table
+
+pages:
+- Home: index.md
