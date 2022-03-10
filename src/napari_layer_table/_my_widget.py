@@ -45,11 +45,8 @@ linePath = '/home/cudmore/Downloads/bil/d9/01/line/rr30a_s0_l.txt'
 #@register_dock_widget(menu="Measurement > Layer Table")
 class LayerTablePlugin(QtWidgets.QWidget):
 	# TODO: extend this to shape layers
-	#acceptedLayers = (
-	#	napari.layers.points.points.Points,
-	#	napari.layers.shapes.shapes.Shapes)
-	acceptedLayers = (
-		napari.layers.Points)
+	#acceptedLayers = (napari.layers.Points, napari.layers.Shapes)
+	acceptedLayers = (napari.layers.Points)
 
 	def __init__(self, napari_viewer, oneLayer=None):
 		"""
@@ -62,6 +59,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		self._viewer = napari_viewer
 		
+		#self._viewer.bind_key('d', self.userPressedKey)
+
 		self._layer = None
 		self._data = None  # list of list of points
 		self._selectedData = None
@@ -69,7 +68,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self.InitGui()  # order matters, connectLayer() is accessing table
 						# but table has to first be created
 
+		self.onlyOneLayer = True
+
 		if oneLayer is None:
+			self.onlyOneLayer = False
 			oneLayer = self._findActiveLayers()
 		if oneLayer is not None:
 			self.connectLayer(oneLayer)
@@ -79,11 +81,29 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		
 		# see docstring for eventedlist
 		# https://github.com/napari/napari/blob/1d784cf8373495d9591594b6dd6ac479d5566ed1/napari/utils/events/containers/_evented_list.py#L34
-		self._viewer.layers.events.connect(self.slot_userSelectLayer)
+		
+		# this receives all user interaction with all layers
+		self._viewer.layers.events.connect(self.slot_user_modified_layer)
+		
 		self._viewer.layers.events.inserting.connect(self.slot_insert_layer)
 		self._viewer.layers.events.inserted.connect(self.slot_insert_layer)
 		self._viewer.layers.events.removed.connect(self.slot_remove_layer)
 		self._viewer.layers.events.removing.connect(self.slot_remove_layer)
+
+	def userPressedKey(self, event):
+		"""
+		TODO: delete selected point from layer and plugin!
+		"""
+		print('xxx:', event, type(event))
+	
+	def keyPressEvent(self, event):
+		print('this never happens')
+
+	'''
+	@viewer.bind_key('d')
+	def myDeleteKey(self):
+		print('xxx')
+	'''
 
 	def connectLayer(self, layer):
 		"""Connect to one layer.
@@ -98,15 +118,19 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		if self._layer is not None:
 			self._layer.events.data.disconnect(self.slot_user_edit_data)
+			self._layer.events.name.disconnect(self.slot_user_edit_name)
 		self._layer = layer
 		#self._data = layer.data
 		self._layer.events.data.connect(self.slot_user_edit_data)
+		self._layer.events.name.connect(self.slot_user_edit_name)
 
 		# when user switches layers, napari does not visually switch selections?
 		# but the layer does remember it. Set it to empty set()
 		# otherwise our interface would re-select the previous selection
 		self._layer.selected_data = set()
 
+		self._selectedData = None
+		
 		self.refreshTableData(layer.data)  # assigns self._data
 
 		#self.myTable.native.selectRow(None)
@@ -305,6 +329,12 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		User inserted a new layer.
 		"""
+		
+		if self.onlyOneLayer:
+			return
+		
+		logger.info(f'event.type: {event.type}')
+		
 		eventType = event.type
 		if eventType == 'inserting':
 			pass
@@ -321,6 +351,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		User deleted a layer
 		"""
+
+		if self.onlyOneLayer:
+			return
+
 		eventType = event.type
 		if eventType == 'removing':
 			pass
@@ -337,6 +371,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#newSelectedLayer = self._viewer.layers.selection.active
 			#self.connectLayer(newSelectedLayer)
 
+	def slot_user_edit_name(self, event):
+		"""User edited the name of a layer
+		"""
+		logger.info(f'name is now: {event.source.name}')
+	
 	def slot_user_edit_data(self, event):
 		"""
 		User edited a point in the current layer.
@@ -403,7 +442,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			self.myTable.native.selectRow(oneRow)
 			#break
 
-	def slot_userSelectLayer(self, event):
+	def slot_user_modified_layer(self, event):
 		"""User selected a new layer.
 		
 			Args:
@@ -412,6 +451,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			Notes:
 				This function is called repeatedly as user
 				moves mouse over layers and points
+
+				This is called when user changes ANY property of the layer
 		"""
 		
 		# as it is, this function gets called a lot !!!
@@ -436,9 +477,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			if isinstance(layer, self.acceptedLayers):
 				if layer != self._layer:
 					self.connectLayer(layer)
-					self._selectedData = None
+					#self._selectedData = None
 					# refresh table
-					self.refreshTableData(layer.data)
+					#self.refreshTableData(layer.data)
 
 				'''
 				for oneRow in layer.selected_data:
@@ -452,6 +493,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 					self._selectedData = layer.selected_data
 					# select via underlying qtableview
 					self.selectInTable(self._selectedData)
+
+		#elif event.type == 'inserting':
+		#	logger.info(f'Inserting new layer "{layer}"')
 
 		elif event.type == 'set_data':
 			# may be usefull
@@ -501,11 +545,18 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		print(f'    viewer.layers.selection.active: {type(activeLayer)} {activeLayer}')
 
 def run():
+	
+	'''
 	#path = '/home/cudmore/Downloads/bil/d9/01/rr30a_s1_ch2.tif'
 	path = '/media/cudmore/data/richard/rr30a/raw/rr30a_s0_ch2.tif'
-
 	image = tifffile.imread(path)
 	print('  image is', image.shape, image.dtype)
+	'''
+
+	numSlices = 20
+	minInt = 0
+	maxInt = 100
+	image = np.random.randint(minInt, maxInt, (numSlices,1024,1024))
 
 	viewer = napari.Viewer()
 
@@ -517,7 +568,7 @@ def run():
 
 	# set viewer to slice zSLice
 	axis = 0
-	zSlice = 29
+	zSlice = 15
 	viewer.dims.set_point(axis, zSlice)
 
 	# synthetic points
