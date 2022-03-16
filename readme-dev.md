@@ -1,12 +1,26 @@
 ## Known bugs
 
- - Designed for 3D points, will generally work with 2d but will get runtime errors.
+ - Designed for 3D points, will generally work with 2d but will get runtime errors. Need to add a test function to test 2d mode.
  
  - On user delete layer (with trash can icon), although another layer is selected (in napari viewer), we do not receive the event and our table remains empty. Table is updated correctly once user clicks in the image part of the viewer.
 
  - When user hits 'delete' key to delete a point, we also delete the selected row in our table. This does not produce a bug but is visually annoying. User keystroke with 'delete' is usefull for deleting layer points (we need to maintain this).
 
+ - If user sorts by column and then (adds, deletes) a point, on refresh our table is no longer in sort order
+
+ - [fixed] if rows are selected and user sorts on column, selection is not updated
+
+ - Allow multiple point selection in table.
+   - When user click+drag in viewer to select multiple points
+   - When user shift+click or command+click in the table
+
+ - Keep track of sort order (column name and ascending/decending).
+   - Resort columns on (add, delete, move)
+   - Make sure the selection is correct
+
 ## TODO
+
+ - my logger defined in _my_widget.py is double printing all logger lines (in console)
 
  - add boolean property to turn off layer switching. We will use this from inside mapmanager to have it just listen to a single point layer that we create with code.
  
@@ -14,7 +28,12 @@
 
  - Get it to work with 2d points
 
+ - Find where events are emitted on point (color, size, symbol) are emitted and update our table model.
 
+ - get multiple disjoint selections working in the table. One selecting in table, select all in viewer and vica-versa. Will have to decide how we 'snap' to point (z) and (x,y) when multiple are selected
+
+ - add shift+click to table row. One shift+click, snap image viewer to point (z,y,x) and zoom to a default amount. Add property to control the amount of zoom
+ 
 ## Keep track of a layer
 
 - Select Layer

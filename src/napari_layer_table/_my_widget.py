@@ -7,21 +7,15 @@ See my post here:
 
 from pprint import pprint
 import sys
-import time
-import warnings
 import logging
-import tifffile
+from functools import partial  # for checkbox callbacks
+
 import numpy as np
 import pandas as pd
 
 import napari
-#from napari_tools_menu import register_dock_widget
-#from napari.qt import thread_worker
-from PyQt5 import QtWidgets
-#from PyQt5 import QtCore
 
-#from magicgui import magicgui
-from magicgui.widgets import Table
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 # set up logging
 logger = logging.getLogger()
@@ -32,17 +26,30 @@ c_format = logging.Formatter(consoleFormat)
 streamHandler.setFormatter(c_format)
 logger.addHandler(streamHandler)
 
-'''
-def _loadLine(path):
-	skiprows = 7  # todo: read this from header comment
-	df = pd.read_csv(path, skiprows=skiprows)
-	print(df.head())
+from napari_layer_table._table_widget import myTableView
+from napari_layer_table._table_widget import pandasModel
 
-linePath = '/home/cudmore/Downloads/bil/d9/01/line/rr30a_s0_l.txt'
-#_loadLine(linePath)
-'''
+#
+# see here for searching unicode symbols
+# # https://unicode-search.net/unicode-namesearch.pl
+# here, we map napari shape names to unicode characters we can print
+SYMBOL_ALIAS = {
+	'arrow': '\u02C3',
+	'clobber': '\u2663',
+	'cross': '\u271A',
+	'diamond': '\u25C6',
+	'disc': '\u26AB',
+	'hbar': '\u2501',
+	'ring': '\u20DD',
+	'square': '\u25A0',  # or '\u2B1B'	
+	'star': '\u2605',
+	'tailed_arrow': '\u2B95',
+	'triangle_down': '\u25BC',
+	'triangle_up': '\u25B2',
+	'vbar': '\u2759',
+	'x': '\u2716',	
+	}
 
-#@register_dock_widget(menu="Measurement > Layer Table")
 class LayerTablePlugin(QtWidgets.QWidget):
 	# TODO: extend this to shape layers
 	#acceptedLayers = (napari.layers.Points, napari.layers.Shapes)
@@ -56,24 +63,40 @@ class LayerTablePlugin(QtWidgets.QWidget):
 							otherwise, connect to all existing layers.
 		"""
 		super().__init__()
-
+		
 		self._viewer = napari_viewer
 		
-		#self._viewer.bind_key('d', self.userPressedKey)
-
 		self._layer = None
-		self._data = None  # list of list of points
 		self._selectedData = None
 
+		self._showProperties = True
+		"""Toggle point properties"""
+		
+		self._showCoordinates = True
+		"""Toggle point coordinates"""
+
+		self._out_of_slice_display = True
+		# see: out_of_slice_display in
+		# https://napari.org/docs/dev/api/napari.layers.Points.html
+
+		self._shift_click_for_new = True
+		"""Allow new points on shift+click. Do not need to set mode to 'add'
+		"""
+		
+		#self.myTable = None
 		self.InitGui()  # order matters, connectLayer() is accessing table
 						# but table has to first be created
 
-		self.onlyOneLayer = True
+		self.onlyOneLayer = None
+		"""If true, will not switch to different layer, requires oneLayer parameter"""
 
 		if oneLayer is None:
 			self.onlyOneLayer = False
 			oneLayer = self._findActiveLayers()
-		if oneLayer is not None:
+			if oneLayer is not None:
+				self.connectLayer(oneLayer)
+		else:
+			self.onlyOneLayer = True
 			self.connectLayer(oneLayer)
 
 		# this does not seem to have events
@@ -90,20 +113,67 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self._viewer.layers.events.removed.connect(self.slot_remove_layer)
 		self._viewer.layers.events.removing.connect(self.slot_remove_layer)
 
-	def userPressedKey(self, event):
-		"""
-		TODO: delete selected point from layer and plugin!
-		"""
-		print('xxx:', event, type(event))
-	
-	def keyPressEvent(self, event):
-		print('this never happens')
+		# does nothing
+		# self._viewer.layers.events.changed.connect(self.slot_changed_layer)
 
-	'''
-	@viewer.bind_key('d')
-	def myDeleteKey(self):
-		print('xxx')
-	'''
+		# open self as a dock widget inside napari window
+		self.area = 'right'
+		self._dockWidget = self._viewer.window.add_dock_widget(self, area=self.area, name='Layer Table Plugin')
+
+		# self._dockWidget is type napari._qt.widgets.qt_viewer_dock_widget.QtViewerDockWidget
+		# some sort of wrapped QDockWidget
+		# but ... this does not work
+		# self._dockWidget.setWindowTitle('xxx yyy')
+	
+	def on_mouse_drag(self, layer, event):
+		"""
+		Handle user mouse-clicks
+
+		TODO:
+			- Add this as an option (activate vie right-click menu)
+			- OR Move this out of plugin and put in main mapmanager
+		"""
+		# pure PyQt
+		#modifiers = QtWidgets.QApplication.keyboardModifiers()
+		#isShift = modifiers == QtCore.Qt.ShiftModifier
+		#logger.info(f'isShift:{isShift}')
+
+		if 'Shift' in event.modifiers:
+			# make a new point at cursor position
+			data_coordinates = self._layer.world_to_data(event.position)
+			# always add as integer pixels (not fractional/float pixels)
+			cords = np.round(data_coordinates).astype(int)
+			
+			#print(f'  data_coordinates:', data_coordinates)
+			#print(f'  cords:', cords)
+			
+			self._layer.add(cords)
+
+	def on_mouse_wheel(self, layer, event):
+		"""Mouse wheel callback.
+		
+		Over-ride default behavior to become
+		
+			mouse-wheel: scroll through image planes (need a 3d image)
+			mouse-wheel + ctrl: zoom in/out on mouse position
+		"""		
+		# used to find what data the event has
+		pprint(vars(event))
+		
+		isShift = 'Shift' in event.modifiers
+		isControl = 'Control' in event.modifiers
+
+		#xDelta = event.delta[0]  # ignore
+		yDelta = event.delta[1]  # +1 is 'up', -1 is 'down'
+
+		logger.info(f'handled:{event.handled} isShift:{isShift} isControl:{isControl} yDelta:{yDelta}')
+
+		#self.dims._increment_dims_left()
+		if isControl:			
+			zoomScale = 0.1
+			_start_zoom = self._viewer.camera.zoom
+			self._viewer.camera.zoom = _start_zoom * (zoomScale + yDelta)
+			#event.handled = True
 
 	def connectLayer(self, layer):
 		"""Connect to one layer.
@@ -119,10 +189,23 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		if self._layer is not None:
 			self._layer.events.data.disconnect(self.slot_user_edit_data)
 			self._layer.events.name.disconnect(self.slot_user_edit_name)
+			#self._layer.events.properties.disconnect(self.slot_user_modified_properties)
 		self._layer = layer
+		
+		# display the name of the layer in our widget
+		self.layerNameLabel.setText(self._layer.name)
+
+		# not sure
 		#self._data = layer.data
+		
 		self._layer.events.data.connect(self.slot_user_edit_data)
 		self._layer.events.name.connect(self.slot_user_edit_name)
+		
+		# these don't work
+		# self._layer.events.properties.connect(self.slot_user_modified_properties)
+		# self._layer.events.face_color.connect(self.slot_user_modified_properties)
+		# self._layer.events.current_face_color.connect(self.slot_user_modified_properties)
+
 
 		# when user switches layers, napari does not visually switch selections?
 		# but the layer does remember it. Set it to empty set()
@@ -131,70 +214,96 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		self._selectedData = None
 		
-		self.refreshTableData(layer.data)  # assigns self._data
+		# tweek UI the way cudmore likes it !!!
+		if self._shift_click_for_new:
+			self._layer.mouse_drag_callbacks.append(self.on_mouse_drag)
+		
+		# TODO: remove this, should by part of map manager
+		# leaving it here as proof-of-concept
+		self._layer.mouse_wheel_callbacks.append(self.on_mouse_wheel)
 
-		#self.myTable.native.selectRow(None)
+		# Will increase/decrease point size as we move above/up and below/down (z) of point
+		self._layer.out_of_slice_display = self._out_of_slice_display
+
+		# full refresh of table
+		self.refresh()
+
+	def keyPressEvent(self, event):
+		"""
+		"""
+		logger.info(f'key press is: {event.text()}')
+		if event.key() == QtCore.Qt.Key_Delete:
+			self._layer.remove_selected()
 
 	def _findActiveLayers(self):
 		"""
-		Find a pre-existing layer and connect to it.
+		Find pre-existing selected layer and connect to it.
 		"""
 		for layer in self._viewer.layers:
 			if isinstance(layer, self.acceptedLayers):
 				if layer == self._viewer.layers.selection.active:
 					# connect to existing active layer
-					#self.connectLayer(layer)
 					return layer
 		return None
 
 	def InitGui(self):
-		columnHeaders = ('z', 'x', 'y')
-		self.myTable = Table(columns=columnHeaders, value=self._data)
 
-		# does not work
-		# self.myTable.changed.connect(self.tableChanged)
 
-		# select one and only one row (not cells and not multiple rows)
-		self.myTable.native.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-		#self.myTable.native.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-		#self.myTable.native.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-		self.myTable.native.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
-		# this would allow user edits in table
-		#myTable.native.itemChanged.connect(onItemChanged)
-
-		# depreciated, see on_selectionChanged
-		# user select row -->> select in viewer layer
-		#self.myTable.native.itemClicked.connect(self.on_table_rowClicked)
-
-		# respond to changes in table selection
-		selection_model = self.myTable.native.selectionModel()
-		selection_model.selectionChanged.connect(self.on_selectionChanged)
-
-		# want to have 'delete' key NOT delete entries in row of table
-		# this captures all delete key events and we can no longer delete
-		# a point even when focus is on the viewer (not the table)
-		#QtWidgets.QShortcut(QtCore.Qt.Key_Delete, self.myTable.native, activated=self.on_delete_key)
-
+		# main vertical layout
+		vbox_layout = QtWidgets.QVBoxLayout()
 		
-		#
-		# make layout 
-		#self.vbox_layout = QtWidgets.QVBoxLayout()
-		#self.vbox_layout.addWidget(self.layer_combo_box)
-		#self.vbox_layout.addWidget(self.myTable)
+		self.layerNameLabel = QtWidgets.QLabel('')
+		vbox_layout.addWidget(self.layerNameLabel)
 
-		#self.setLayout(self.vbox_layout)
+		self.myTable2 = myTableView()
+		# to pass selections in table back to the viewer
+		self.myTable2.signalSelectionChanged.connect(self.slot_selectionChanged)
+		vbox_layout.addWidget(self.myTable2)
 
-		#self.myTable.show(run=True)
-
-		self._viewer.window.add_dock_widget(self.myTable)
-
-	'''
-	def tableChanged(self):
-		logger.info('')
-	'''
+		# finalize
+		self.setLayout(vbox_layout)
 
 	def setRow(self, rowSet : set, pntList : list):
+		"""
+		Set table row to new values.
+
+		Usually responding to a user dragging a point.
+
+		Args:
+			rowSet (set of row indices)
+			pntList (list of np.ndarray)
+		"""
+		logger.info(f'rowSet:{rowSet}')
+		print(f'  NEED TO IMPLEMENT SET ROW !!!')
+
+		for row in rowSet:
+			row = int(row)
+			newRow = pntList[row]  # the z/y/x coordinates
+
+			newRowList = newRow.tolist()
+			
+			print(f'  setting values of row: {newRowList}')
+			
+			#  data is a DataView object
+			#self.myTable2.data[row] = newRowList
+
+			rowDict = {
+				'symbol': 'xxx',
+				'z': newRowList[0],
+				'x': newRowList[1],
+				'y': newRowList[2],
+				'Prop 1': 'd',
+				'Is Good': False
+			}
+
+			# this does not work, our model is no longer our pandasmodel !!!
+			self.myTable2.myModel.mySetRow(row, rowDict)
+			
+			# on changing, don't auto sort
+			# need to keep track of column user sorted on and sort on that
+			#self.myTable2.proxy.sort(row)
+
+	def old_setRow(self, rowSet : set, pntList : list):
 		"""
 		Set table row to new values.
 
@@ -220,68 +329,109 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#  data is a DataView object
 			self.myTable.data[row] = newRowList
 
-	def refreshTableData(self, data):
+	def refresh(self, data = None):
+		"""Refresh table with new layer data
+		
+		This refreshes entire table (slow).
+		We need to add rowIdx param and just refresh one row.
+		One row refresh occurs on (add, delete, move)
+		One row refresh also should depend on state change of layer like 'marker' or 'face_color'
 		"""
-		Completely refresh table data with a new set of points.
-		"""
+		
+		layerDataFrame = self.getLayerData(data)
+		self._refreshTableData(layerDataFrame)
 
-		'''
-		# currentDict is like
-		{
-			'data': [[29, 550, 500], [29, 650, 600], [29, 750, 700]],
-			'index': (0, 1, 2),
-			'columns': ('z', 'x', 'y')
-		}
-		'''
+	def getLayerData(self, data = None, rowList = None, fromLayer = None):
+		"""
+		Get our customized layer data to display in a table.
+		
+		This includes (symbol, coordinates, properties)
+
+		Args:
+			data (np.ndarray)
+		"""
+		
+		if fromLayer is None:
+			fromLayer = self._layer
+		
+		if data is None:
+			data = fromLayer.data
 
 		if data is None:
-			return
+			logger.warning(f'layer "{self._layer}"" did not have any data')
+			return None
+
+		if rowList is None:
+			rowList = range(data.shape[0])
+
+		logger.info('')
+		print('  rowList:', type(rowList), rowList)
+
+		df = pd.DataFrame()
+		
+		if self._showCoordinates:
+			if data.shape[1] == 3:
+				df['z'] = data[rowList,0]
+				df['x'] = data[rowList,2]  # swapped
+				df['y'] = data[rowList,1]
+			elif data.shape[1] == 2:
+				df['x'] = data[rowList,0]
+				df['y'] = data[rowList,1]
 			
-		data = np.round(data, 2)
+			else:
+				logger.error(f'got bad data shape {data.shape}')
 		
-		self._data = data
+		if self._showProperties:
+			for k,v in self._layer.properties.items():
+				df[k] = v[rowList]
 
-		currentDict = self.myTable.value  # get table as dict
-		currentDict['data'] = data
-		currentDict['index'] = {i for i in range(len(data))}  # enum comprehension
-		#currentDict['columns'] = xxx
-
-		self.myTable.value = currentDict
-
-	'''
-	def on_table_rowClicked(self, item):
-		"""
-		User clicked on table row ... select in viewer
-
-		Params:
-			item (QTableWidgetItem): The item clicked
-		"""
-		logger.info(f'item: {item}')
-
-		selectionModel = self.myTable.native.selectionModel()
-		selectedRows = selectionModel.selectedRows()  # should only be one row
-
-		print(f'  selectedRows: {type(selectedRows)} {selectedRows}')
+		# TODO: put this first but be sure to get number of points in layer
 		
-		#selectedRowList = []
-		#for selectedRow in selectedRows:
-		#	print('  selectedRow:', selectedRow.row())
-		#	selectedRowList.append(selectedRow.row())
-		#selectedRowSet = set(selectedRowList)
-		selectedRowList = [selectedRow.row() for selectedRow in selectedRows]
-		selectedRowSet = set(selectedRowList)
-
 		#
-		# emit back to viewer
-		# select point set
-		self._layer.selected_data = selectedRowSet
+		# face color
+		symbol = self._layer.symbol  # str
+		try:
+			symbol = SYMBOL_ALIAS[symbol]
+		except (KeyError) as e:
+			logger.warning(f'did not find symbol in SYMBOL_ALIAS named "{symbol}"')
+			symbol = 'X'
+		# this is needed to keep number of rows correct
+		symbolList = [symbol] * len(rowList)  # data.shape[0]  # make symbols for each point
+		df.insert(loc=0, column='symbol', value=symbolList)  # insert as first column
+		
+		tmpColor = [row for row in self._layer.face_color[rowList]]
+		df['face_color'] = tmpColor
 
-		# if only one selected then snap z of the image layer
-		if len(selectedRowList) == 1:
-			selectedRow = selectedRowList[0]  # the first row selection
-			zSlice = self._data[selectedRow][0]  # assuming (z,y,x)
-			self.snapToImagePlane(zSlice)
-	'''
+		return df
+
+	def _refreshTableData(self, data):
+		"""Refresh all data in table.
+
+		Args:
+			data (pd.DataFrame)
+		"""
+		
+		if data is None:
+			return
+		
+		if self.myTable2 is None:
+			return
+
+		logger.info(f'')
+		print('  shape:', data.shape)
+		print('  columns:', data.columns)
+
+		myModel = pandasModel(data)
+		self.myTable2.mySetModel(myModel)
+
+		# always hide face_color column
+		try:
+			colIdx = data.columns.get_loc('face_color')
+			if colIdx != -1:
+				print(f'  !!! hiding face_color column {colIdx}')
+				self.myTable2.setColumnHidden(colIdx, True)
+		except (KeyError) as e:
+			logger.warning('did not find face_color column, symbol colors will not work')
 
 	def on_delete_key(self):
 		"""
@@ -291,32 +441,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		logger.info('TODO: delete selected point from current layer')
 	
-	def on_selectionChanged(self, selected, deselected):
-		"""
-		User clicked or used keyboard to select a table row.
-
-		Args:
-			selected (QItemSelection)
-		
-		Notes:
-			We are not using parameters, we are looking at current selection in table.
-			This assumes that when this slot is triggered, it has already been set.
-		"""
-		logger.info('')
-		modelIndexList = self.myTable.native.selectionModel().selectedRows()
-		selectedRowList = [modelIndex.row() for modelIndex in modelIndexList]
-		selectedRowSet = set(selectedRowList)
-
-		#
-		# emit back to viewer
-		self._layer.selected_data = selectedRowSet
-
-		# if only one selected then snap z of the image layer
-		if len(selectedRowList) == 1:
-			selectedRow = selectedRowList[0]  # the first row selection
-			zSlice = self._data[selectedRow][0]  # assuming (z,y,x)
-			self.snapToImagePlane(zSlice)
-
 	def snapToImagePlane(self, zPlane):
 		"""Snap the viewer to an image plane.
 		
@@ -324,6 +448,86 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		axis = 0 # assuming (z,y,x)
 		self._viewer.dims.set_point(axis, zPlane)
+
+	def snapToPoint(self, selectedRow):
+		"""Snap viewer to a selected row.
+		"""
+		pass
+
+	def contextMenuEvent(self, event):
+		"""
+		Show a context menu on mouse right-click.
+
+		This is an inherited function of QWidget.
+		"""
+
+		# create the menu
+		contextMenu = QtWidgets.QMenu(self)
+		
+		# add menu item actions
+		showCoordinates = contextMenu.addAction("Show Coordinates")
+		showCoordinates.setCheckable(True)
+		showCoordinates.setChecked(self._showCoordinates)
+		
+		showProperties = contextMenu.addAction("Show Properties")
+		showProperties.setCheckable(True)
+		showProperties.setChecked(self._showProperties)
+
+		contextMenu.addSeparator()
+		shiftClickForNew = contextMenu.addAction("Shift+Click for new")
+		shiftClickForNew.setCheckable(True)
+		shiftClickForNew.setChecked(self._shift_click_for_new)
+
+		out_of_slice_display = contextMenu.addAction("Out Of Slice Display")
+		out_of_slice_display.setCheckable(True)
+		out_of_slice_display.setChecked(self._out_of_slice_display)
+
+
+		contextMenu.addSeparator()
+		copyTable = contextMenu.addAction("Copy Table To Clipboard")
+
+		# show the menu
+		action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+		
+		# take action
+		if action == showCoordinates:
+			self._showCoordinates = not self._showCoordinates
+			self.refresh()
+		elif action == showProperties:
+			self._showProperties = not self._showProperties
+			self.refresh()
+		elif action == shiftClickForNew:
+			self._shift_click_for_new = not self._shift_click_for_new
+			# TODO: add/remove event
+		elif action == out_of_slice_display:
+			self._out_of_slice_display = not self._out_of_slice_display
+			#self.refresh()
+			if self._layer is not None:
+				self._layer.out_of_slice_display = self._out_of_slice_display
+		elif action == copyTable:
+			# TODO: Add a copyTable() function to myTable2 (so we don't hve to explicity refer to the model)
+			self.myTable2.myModel.myCopyTable()
+		elif action is not None:
+			logger.warning(f'action not taken "{action.text()}"')
+
+	def slot_selectionChanged(self, selectedRowList):
+		"""Respond to user selecting a table row.
+		"""
+		logger.info(f'selectedRowList: {selectedRowList}')
+		
+		selectedRowSet = set(selectedRowList)
+
+		# emit back to viewer
+		self._layer.selected_data = selectedRowSet
+
+		# if only one row selected then snap z of the image layer
+		if len(selectedRowList) == 1:
+			selectedRow = selectedRowList[0]  # the first row selection
+			zSlice = self._layer.data[selectedRow][0]  # assuming (z,y,x)
+			self.snapToImagePlane(zSlice)
+
+			# move viewer so selected point is in view
+			self.snapToPoint(selectedRow)
 
 	def slot_insert_layer(self, event):
 		"""
@@ -343,9 +547,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			
 			layer = event.value
 			self.connectLayer(layer)
-			
-			# table data is empty
-			#self.refreshTableData([])
 
 	def slot_remove_layer(self, event):
 		"""
@@ -375,7 +576,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""User edited the name of a layer
 		"""
 		logger.info(f'name is now: {event.source.name}')
-	
+		self.layerNameLabel.setText(event.source.name)
+
+	#def slot_changed_layer(self, event):
+	#	logger.info('')
+
 	def slot_user_edit_data(self, event):
 		"""
 		User edited a point in the current layer.
@@ -390,58 +595,65 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		logger.info('')
 
-		# event.type == 'data'  # maybe useful ???
-		
-		# this is HUGE
-		# pprint(vars(event.source))
-
 		myEventType = None
-		if event.source.mode == 'add':
+		#if event.source.mode == 'add':
+		#	myEventType = 'add'
+		currentNumRows = self.myTable2.getNumRows()
+		if currentNumRows < len(event.source.data):
 			myEventType = 'add'
-		elif len(self._data) != len(event.source.data):
+		elif currentNumRows > len(event.source.data):
 			myEventType = 'delete'
 		else:
 			myEventType = 'move'
 
-		# catch user key-stroke 'delete'
-		if myEventType == 'add' and (len(event.source.data) < len(self._data)):
-			myEventType = 'delete'
-
 		print('  myEventType:', myEventType)
 		
 		if myEventType == 'add':
-			print(f'  add will always append to end')
-			for point in event.source.selected_data:
-				try:
-					addedData = event.source.data[point]
-				except (IndexError) as e:
-					logger.error(e)
-				else:
-					print(f'  added point index {point} is now: {addedData}')
-			# add to table
-			self.refreshTableData(event.source.data)
+			theLayer = event.source  # has the new point
+			addedRowList = list(event.source.selected_data)
+			print(f'  addedRowList:', addedRowList)
+			myTableData = self.getLayerData(rowList=addedRowList, fromLayer=theLayer)
+			self.myTable2.myModel.myAppendRow(myTableData)
 			self.selectInTable(event.source.selected_data)
 
 		elif myEventType == 'delete':
-			print(f'  deleted points set {event.source.selected_data}')
-			# already deleted from data
-			# delete from table
-			self.refreshTableData(event.source.data)
+			deleteRowList = list(event.source.selected_data)
+			print(f'  deleteRowList: {deleteRowList}')
+
+			for deleteRow in deleteRowList:
+				self.myTable2.myModel.myDeleteRow(deleteRow)
+
 		elif myEventType == 'move':
-			for point in event.source.selected_data:
-				movedData = event.source.data[point]
-				print(f'  moved point index {point} is now at: {movedData}')
+			#for point in event.source.selected_data:
+			#	movedData = event.source.data[point]
+			#	print(f'  moved point index {point} is now at: {movedData}')
 			# update table
-			self.setRow(event.source.selected_data, event.source.data)
+			#self.setRow(event.source.selected_data, event.source.data)
+
+			theLayer = event.source  # has the changed points
+			moveRowList = list(event.source.selected_data)
+			print(f'  moveRowList:', moveRowList)
+			myTableData = self.getLayerData(rowList=moveRowList, fromLayer=theLayer)
+			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
 
 		#self._printEvent(event)
 
 	def selectInTable(self, selected_data):
-		# select via underlying qtableview
-		for oneRow in selected_data:
-			self.myTable.native.selectRow(oneRow)
-			#break
+		logger.info(f'selected_data: {selected_data}')
 
+		# select via underlying qtableview
+		if selected_data:
+			for oneRow in selected_data:
+				#self.myTable.native.selectRow(oneRow)
+				self.myTable2.selectRow(oneRow)
+				#break
+		else:
+			print('  xxx TODO: cancel selection if empty !!!')
+			self.myTable2.clearSelection()
+
+	def slot_user_modified_properties(self, event):
+		logger.info(event.type)
+	
 	def slot_user_modified_layer(self, event):
 		"""User selected a new layer.
 		
@@ -470,16 +682,18 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#newSelectedLayer = self._viewer.layers.selection.active
 			#self.connectLayer(newSelectedLayer)
 
+		elif event.type == 'set_data':
+			pass
+			#layer = self._viewer.layers.selection.active
+			#logger.info(f'{event.type} layer.selected_data: {layer.selected_data}')
 		elif event.type == 'highlight':
 			#pprint(vars(event))
 			# TODO: This is bad, grabbing from global
 			layer = self._viewer.layers.selection.active
+			#print('face_color:', layer.face_color)
 			if isinstance(layer, self.acceptedLayers):
 				if layer != self._layer:
 					self.connectLayer(layer)
-					#self._selectedData = None
-					# refresh table
-					#self.refreshTableData(layer.data)
 
 				'''
 				for oneRow in layer.selected_data:
@@ -491,42 +705,56 @@ class LayerTablePlugin(QtWidgets.QWidget):
 				if layer.selected_data != self._selectedData:
 					logger.info(f'assigning self._selectedData = {layer.selected_data}')
 					self._selectedData = layer.selected_data
+					
+					# get properties of selected data
+					pntList = list(self._selectedData)
+					for k,v in layer.properties.items():
+						print(f'  properties at pnt {self._selectedData} {k} {v[pntList]}')
+
 					# select via underlying qtableview
 					self.selectInTable(self._selectedData)
 
 		#elif event.type == 'inserting':
 		#	logger.info(f'Inserting new layer "{layer}"')
 
-		elif event.type == 'set_data':
-			# may be usefull
-			pass
+		#elif event.type == 'set_data':
+		#	# may be usefull
+		#	pass
 
-		elif event.type == 'thumbnail':
-			# may be usefull
-			pass
+		#elif event.type == 'thumbnail':
+		#	# may be usefull
+		#	pass
 		
 		elif event.type == 'current_edge_color':
-			# may be usefull
 			pass
+			#logger.info(f'current_edge_color: {event}')
 		
 		elif event.type == 'current_face_color':
-			# may be usefull
 			pass
-		
+			# this is not triggered on color change
+			# logger.info(f'current_face_color: type(event):{type(event)}')
+			# print('xxx event is:')
+			# pprint(event)
+
 		elif event.type == 'current_properties':
-			# may be usefull
 			pass
+			#logger.info(f'current_properties: {event}')
 		
-		elif event.type == 'data':
-			# may be usefull
-			pass
+		#elif event.type == 'data':
+		#	# may be usefull
+		#	pass
 		
+		elif event.type == 'symbol':
+			logger.info('symbol')
+			self.refresh()
+
 		else:
-			logger.warning(f'Did not understand event.type: {event.type}')
+			pass
+			#logger.warning(f'Did not understand event.type: {event.type}')
 
 	def _printEvent(self, event):
 		"""
-		Print info for event received in general slot_
+		Print info for napari event received in general slot_
 		"""
 		#logger.info(f'Event type: {type(event)}')
 		print(f'  == _printEvent() type:{type(event)}')
@@ -545,7 +773,17 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		print(f'    viewer.layers.selection.active: {type(activeLayer)} {activeLayer}')
 
 def run():
-	
+
+	'''
+	def _loadLine(path):
+		skiprows = 7  # todo: read this from header comment
+		df = pd.read_csv(path, skiprows=skiprows)
+		print(df.head())
+
+	linePath = '/home/cudmore/Downloads/bil/d9/01/line/rr30a_s0_l.txt'
+	#_loadLine(linePath)
+	'''
+
 	'''
 	#path = '/home/cudmore/Downloads/bil/d9/01/rr30a_s1_ch2.tif'
 	path = '/media/cudmore/data/richard/rr30a/raw/rr30a_s0_ch2.tif'
@@ -572,7 +810,13 @@ def run():
 	viewer.dims.set_point(axis, zSlice)
 
 	# synthetic points
-	# if one point has a float, magicgui table makes ALL float
+	# test 2d points
+	points2d = np.array([[500, 550], [600, 650], [700, 750]])
+	pointsLayer2d = viewer.add_points(points2d,
+							size=20, face_color='yellow', name='yellow carrots')
+	pointsLayer2d.mode = 'select'
+	pointsLayer2d.symbol = '^'
+
 	points1 = np.array([[zSlice, 100, 100], [zSlice, 200, 200], [zSlice, 300, 300], [zSlice, 400, 400]])
 	pointsLayer = viewer.add_points(points1,
 							size=30, face_color='green', name='green circles')
@@ -582,10 +826,18 @@ def run():
 	pointsLayer2 = viewer.add_points(points2,
 							size=30, face_color='magenta', name='magenta crosses')
 	pointsLayer2.mode = 'select'
+	#pointsLayer2.symbols = ['+'] * points2.shape[0]
 	pointsLayer2.symbol = '+'
+	
+	# add some properties
+	pointsLayer2.properties = {
+		'Prop 1': ['a', 'b', 'c'],
+		'Is Good': [True, False, True],
+	}
 
 	# run the plugin
-	aMyInterface = LayerTablePlugin(viewer, oneLayer=pointsLayer2)
+	#aMyInterface = LayerTablePlugin(viewer, oneLayer=pointsLayer2)
+	aMyInterface = LayerTablePlugin(viewer, oneLayer=None)
 
 	napari.run()
 
