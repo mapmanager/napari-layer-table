@@ -97,7 +97,13 @@ class myTableView(QtWidgets.QTableView):
 
 		self.proxy = QtCore.QSortFilterProxyModel()
 		self.proxy.setSourceModel(model)
+
+		self.myModel.beginResetModel()
 		self.setModel(self.proxy)
+		self.myModel.endResetModel()
+		
+		# self.myModel.layoutChanged.emit()
+		# self.myModel.modelReset.emit()
 
 		# was this
 		# self.setModel(model)

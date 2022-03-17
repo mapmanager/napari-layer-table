@@ -211,7 +211,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# but the layer does remember it. Set it to empty set()
 		# otherwise our interface would re-select the previous selection
 		self._layer.selected_data = set()
-
 		self._selectedData = None
 		
 		# tweek UI the way cudmore likes it !!!
@@ -232,8 +231,12 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""
 		"""
 		logger.info(f'key press is: {event.text()}')
-		if event.key() == QtCore.Qt.Key_Delete:
+		delete_keylist = [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]
+		# if event.key() == QtCore.Qt.Key_Delete:
+		if event.key() in delete_keylist:
 			self._layer.remove_selected()
+		else:
+			print('  did not understand key')
 
 	def _findActiveLayers(self):
 		"""
