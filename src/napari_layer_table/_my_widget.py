@@ -105,6 +105,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# see docstring for eventedlist
 		# https://github.com/napari/napari/blob/1d784cf8373495d9591594b6dd6ac479d5566ed1/napari/utils/events/containers/_evented_list.py#L34
 		
+		# was this
 		# this receives all user interaction with all layers
 		self._viewer.layers.events.connect(self.slot_user_modified_layer)
 		
@@ -125,6 +126,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# but ... this does not work
 		# self._dockWidget.setWindowTitle('xxx yyy')
 	
+	def on_refresh_button(self):
+		logger.info('')
+		self.refresh()
+
 	def on_mouse_drag(self, layer, event):
 		"""
 		Handle user mouse-clicks
@@ -202,9 +207,21 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self._layer.events.name.connect(self.slot_user_edit_name)
 		
 		# these don't work
-		# self._layer.events.properties.connect(self.slot_user_modified_properties)
-		# self._layer.events.face_color.connect(self.slot_user_modified_properties)
-		# self._layer.events.current_face_color.connect(self.slot_user_modified_properties)
+		#self._layer.events.properties.connect(self.slot_user_modified_face_color)
+		#self._layer.events.face_color.connect(self.slot_user_modified_face_color)
+		
+		# connecting twice
+		# does not work, faceColorEdit is color picker interface
+		# AttributeError: 'Points' object has no attribute 'faceColorEdit'
+		# self._layer.faceColorEdit.color_changed.connect(self.changeFaceColor)
+		
+		# this does not call our callback ... bug in napari???
+		self._layer.events.face_color.connect(self.slot_user_modified_face_color)
+		# this works but layer is not updated yet
+		self._layer._face.events.current_color.connect(self.slot_user_modified_face_color)
+		
+		# we are not setting face color in the plugin
+		#self._layer._edge.events.current_color.connect(self.slot_user_modified_edge_color)
 
 
 		# when user switches layers, napari does not visually switch selections?
@@ -226,6 +243,76 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		# full refresh of table
 		self.refresh()
+
+	#@Slot(np.ndarray)
+	def changeFaceColor(self, color: np.ndarray):
+		"""Update face color of layer model from color picker user input."""
+		#with self.layer.events.current_face_color.blocker():
+		#    self.layer.current_face_color = color
+		logger.info('')
+
+	def slot_user_modified_face_color(self):
+		"""Respond to user selecting face color with color picker.
+
+			Notes:
+				- Unlike other event callbacks, this has no parameters.
+				
+		"""
+		logger.info('')
+		
+		# features is same as properties
+		#features = self._layer.features
+		#print('  features is:')		
+		#print(features)
+
+		# user point selection
+		selected_data = self._layer.selected_data
+		if not selected_data:
+			return
+		
+		# face color set/selected in face color color picker
+
+		# this is the rgba of the selected point
+		rgbaOfSelection = self._layer._face.current_color
+		current_face_color = self._layer.current_face_color  # hex
+		print(f'  TODO: set point {selected_data} in table to symbol color {rgbaOfSelection} {current_face_color}')
+
+
+		#print('  self._layer.face_color is an nparray of rgba colors')
+		#print(self._layer.face_color)
+
+		# we need new function just to set the color of symbol in table
+		# using current_face_color
+		# Following does not work
+		'''
+		selectedDataList = list(selected_data)
+		theLayer = self._viewer.layers.selection.active
+		myTableData = self.getLayerData(rowList=selectedDataList, fromLayer=theLayer)
+		self.myTable2.myModel.mySetRow(selectedDataList, myTableData)
+		'''
+
+	# we are not showing edge color in plugin
+	'''
+	def slot_user_modified_edge_color(self):
+		"""Respond to user selecting edge color with color picker.
+
+			Out table does not show edhe color, do nothing.
+
+			Notes:
+				- Unlike other event callbacks, this has no parameters.
+		"""
+		# our table does not show edge color, do nothing
+		return
+		logger.info('')
+		# user point selection
+		selected_data = self._layer.selected_data
+		if not selected_data:
+			return
+		# edge color set/selected in face color color picker
+		current_edge_color = self._layer.current_edge_color
+
+		print(f'  TODO: set point {selected_data} in table to edge color {current_edge_color}')
+	'''
 
 	def keyPressEvent(self, event):
 		"""
@@ -254,9 +341,20 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		# main vertical layout
 		vbox_layout = QtWidgets.QVBoxLayout()
-		
+
+		# one row of controls
+		controls_hbox_layout = QtWidgets.QHBoxLayout()
+
+		# full refresh of table
+		refreshButton = QtWidgets.QPushButton('Refresh')
+		refreshButton.clicked.connect(self.on_refresh_button)
+		controls_hbox_layout.addWidget(refreshButton)
+
+		# the current layer name
 		self.layerNameLabel = QtWidgets.QLabel('')
-		vbox_layout.addWidget(self.layerNameLabel)
+		controls_hbox_layout.addWidget(self.layerNameLabel)
+
+		vbox_layout.addLayout(controls_hbox_layout)
 
 		self.myTable2 = myTableView()
 		# to pass selections in table back to the viewer
@@ -266,6 +364,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# finalize
 		self.setLayout(vbox_layout)
 
+	# not used
+	'''
 	def setRow(self, rowSet : set, pntList : list):
 		"""
 		Set table row to new values.
@@ -305,6 +405,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			# on changing, don't auto sort
 			# need to keep track of column user sorted on and sort on that
 			#self.myTable2.proxy.sort(row)
+	'''
 
 	def old_setRow(self, rowSet : set, pntList : list):
 		"""
@@ -344,7 +445,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		layerDataFrame = self.getLayerData(data)
 		self._refreshTableData(layerDataFrame)
 
-	def getLayerData(self, data = None, rowList = None, fromLayer = None):
+	def getLayerData(self, data: np.ndarray = None, rowList: list = None, fromLayer = None) -> pd.DataFrame:
 		"""
 		Get our customized layer data to display in a table.
 		
@@ -352,6 +453,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		Args:
 			data (np.ndarray)
+			rowList (list)
+			fromLayer (layer) not used, leave this in case we receive
+				a callback but self._layer is not updated yet
 		"""
 		
 		if fromLayer is None:
@@ -615,7 +719,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			theLayer = event.source  # has the new point
 			addedRowList = list(event.source.selected_data)
 			print(f'  addedRowList:', addedRowList)
-			myTableData = self.getLayerData(rowList=addedRowList, fromLayer=theLayer)
+			#myTableData = self.getLayerData(rowList=addedRowList, fromLayer=theLayer)
+			# assuming self._layer is already updated
+			myTableData = self.getLayerData(rowList=addedRowList)
 			self.myTable2.myModel.myAppendRow(myTableData)
 			self.selectInTable(event.source.selected_data)
 
@@ -636,7 +742,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			theLayer = event.source  # has the changed points
 			moveRowList = list(event.source.selected_data)
 			print(f'  moveRowList:', moveRowList)
-			myTableData = self.getLayerData(rowList=moveRowList, fromLayer=theLayer)
+			#myTableData = self.getLayerData(rowList=moveRowList, fromLayer=theLayer)
+			# assuming self._layer is already updated
+			myTableData = self.getLayerData(rowList=moveRowList)
 			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
 
 		#self._printEvent(event)
@@ -686,7 +794,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#self.connectLayer(newSelectedLayer)
 
 		elif event.type == 'set_data':
-			pass
+			print('  event.type:', event.type, ' --> doing nothing ...')
 			#layer = self._viewer.layers.selection.active
 			#logger.info(f'{event.type} layer.selected_data: {layer.selected_data}')
 		elif event.type == 'highlight':
@@ -733,14 +841,14 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#logger.info(f'current_edge_color: {event}')
 		
 		elif event.type == 'current_face_color':
-			pass
+			print('  event.type:', event.type, ' --> doing nothing ...')
 			# this is not triggered on color change
 			# logger.info(f'current_face_color: type(event):{type(event)}')
 			# print('xxx event is:')
 			# pprint(event)
 
 		elif event.type == 'current_properties':
-			pass
+			print('  event.type:', event.type, ' --> doing nothing ...')
 			#logger.info(f'current_properties: {event}')
 		
 		#elif event.type == 'data':
@@ -752,7 +860,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			self.refresh()
 
 		else:
-			pass
+			print('  did not understand event.type:', event.type, ' --> doing nothing ...')
 			#logger.warning(f'Did not understand event.type: {event.type}')
 
 	def _printEvent(self, event):
@@ -827,7 +935,11 @@ def run():
 
 	points2 = np.array([[zSlice, 550, 500], [zSlice, 650, 600], [zSlice, 750, 700]])
 	pointsLayer2 = viewer.add_points(points2,
-							size=30, face_color='magenta', name='magenta crosses')
+							size=30, face_color='magenta', 
+							#edge_color='magenta',
+							#edge_width_is_relative=False,
+							#edge_width=10,
+							name='magenta crosses')
 	pointsLayer2.mode = 'select'
 	#pointsLayer2.symbols = ['+'] * points2.shape[0]
 	pointsLayer2.symbol = '+'

@@ -1,38 +1,28 @@
 ## Known bugs
 
- - Designed for 3D points, will generally work with 2d but will get runtime errors. Need to add a test function to test 2d mode.
+ - Designed for 3D points, will generally work with 2d. Need to add a unit test to test 2d mode.
  
- - On user delete layer (with trash can icon), although another layer is selected (in napari viewer), we do not receive the event and our table remains empty. Table is updated correctly once user clicks in the image part of the viewer.
-
- - When user hits 'delete' key to delete a point, we also delete the selected row in our table. This does not produce a bug but is visually annoying. User keystroke with 'delete' is usefull for deleting layer points (we need to maintain this).
-
- - If user sorts by column and then (adds, deletes) a point, on refresh our table is no longer in sort order
+ - On user delete layer (with napari gui trash can icon), although another layer is selected (in napari viewer), we do not receive the event and our table remains on the previous (now deleted) layer. Table is updated correctly once user clicks in the image part of the viewer.
 
  - [fixed] if rows are selected and user sorts on column, selection is not updated
 
- - Allow multiple point selection in table.
-   - When user click+drag in viewer to select multiple points
-   - When user shift+click or command+click in the table
-
- - Keep track of sort order (column name and ascending/decending).
-   - Resort columns on (add, delete, move)
+ - [fixed] If user sorts by column and then (adds, deletes) a point, on refresh our table is no longer in sort order.
+  - Keep track of sort order (column name, ascending/decending).
+   - On add/delete point, if we have a sort 'column' then resort with proper ascending/desending.
    - Make sure the selection is correct
+
 
 ## TODO
 
- - my logger defined in _my_widget.py is double printing all logger lines (in console)
+ - my logger defined in _my_widget.py is double printing all logger lines (in console). I guess this is because logger is initialized each time .py file is  included? Fix by putting creation of logger into a function?
 
- - add boolean property to turn off layer switching. We will use this from inside mapmanager to have it just listen to a single point layer that we create with code.
+ - [done] see `onlyOneLayer`. Add boolean property to turn off layer switching. We will use this from inside mapmanager to have it just listen to a single point layer that we create with code.
  
- - Figure out how to manage key press events in magicgui table. If we can't do it then use a derived QTableView with a proper data model.
+ - Allow multiple point selection in table. Get multiple disjoint selections working in the table. On selecting in table, select all in viewer and vica-versa. Will have to decide how we 'snap' to point (z) and (x,y) when multiple are selected
+   - When user click+drag in viewer then select multiple points in table
+   - When user shift+click or command+click in the table then select multiple points in the viewer
 
- - Get it to work with 2d points
-
- - Find where events are emitted on point (color, size, symbol) are emitted and update our table model.
-
- - get multiple disjoint selections working in the table. One selecting in table, select all in viewer and vica-versa. Will have to decide how we 'snap' to point (z) and (x,y) when multiple are selected
-
- - add shift+click to table row. One shift+click, snap image viewer to point (z,y,x) and zoom to a default amount. Add property to control the amount of zoom
+ - add shift+click to table row. On shift+click in table, snap image viewer to point (z,y,x) and zoom to a default amount. Add property to control the amount of zoom. If user is already zoomed into the image then keep that zoom.
  
 ## Keep track of a layer
 

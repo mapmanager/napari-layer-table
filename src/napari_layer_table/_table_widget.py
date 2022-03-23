@@ -45,13 +45,14 @@ class myTableView(QtWidgets.QTableView):
 		self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers
 							| QtWidgets.QAbstractItemView.DoubleClicked)
 
+		# allow discontinuous selections (with command key)
+		self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+		#self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+
 		# does not do anything
 		#self.resizeColumnsToContents()
 
 		self.setSortingEnabled(True)
-
-		# allow discontinuous selections (with command key)
-		self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
 	def getNumRows(self):
 		"""Get number of rows from the model.
