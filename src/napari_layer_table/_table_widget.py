@@ -2,63 +2,53 @@ from pprint import pprint
 import math
 import numpy as np
 import pandas as pd
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-import logging
-logger = logging.getLogger()
+from qtpy import QtCore, QtGui, QtWidgets
+
+from napari_layer_table._my_logger import logger
 
 class myTableView(QtWidgets.QTableView):
-	"""Table view to display list of files.
-
-	TODO: Try and implement the first column (filename) as a frozen column.
-
-	See: https://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html
+	"""Table view to display list of points in a point layer.
 	"""
 
-	signalSelectionChanged = QtCore.pyqtSignal(object)
-	
-	'''
-	signalDuplicateRow = QtCore.pyqtSignal(object) # row index
-	signalDeleteRow = QtCore.pyqtSignal(object) # row index
-	#signalRefreshTabe = QtCore.pyqtSignal(object) # row index
-	signalCopyTable = QtCore.pyqtSignal()
-	signalFindNewFiles = QtCore.pyqtSignal()
-	signalSaveFileTable = QtCore.pyqtSignal()
-	'''
+	signalSelectionChanged = QtCore.Signal(object, object)
+	"""Emit when user changes row selection."""
 
 	def __init__(self, parent=None):
-		"""
-		"""
 		super(myTableView, self).__init__(parent)
 
 		self.myModel = None
 		
-		#self.doIncludeCheckbox = False  # todo: turn this on
-		# need a local reference to delegate else 'segmentation fault'
-		#self.keepCheckBoxDelegate = myCheckBoxDelegate(None)
+		self.blockUpdate = False
+		
+		self.hiddenColumnSet = set()
+		self.hiddenColumnSet.add('Face Color')
 
-		#self.setFont(QtGui.QFont('Arial', 10))
 		self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
 							QtWidgets.QSizePolicy.Expanding)
-		self.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-
 		self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers
 							| QtWidgets.QAbstractItemView.DoubleClicked)
 
+		self.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+
 		# allow discontinuous selections (with command key)
 		self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-		#self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-
-		# does not do anything
-		#self.resizeColumnsToContents()
 
 		self.setSortingEnabled(True)
+
+		# to allow click on already selected row
+		self.clicked.connect(self.old_on_user_click_row)
 
 	def getNumRows(self):
 		"""Get number of rows from the model.
 		"""
 		return self.myModel.rowCount()
 	
+	def getColumns(self):
+		"""Get columns from model.
+		"""
+		return self.myModel._data.columns
+
 	def clearSelection(self):
 		"""Over-ride inherited.
 		
@@ -66,29 +56,43 @@ class myTableView(QtWidgets.QTableView):
 		"""
 		super().clearSelection()
 	
-	def selectRow(self, rowIdx):
-		"""
-		over-ride to get sort order right
+	def selectRow(self, rowIdx : int):
+		"""Select one row.
 		
-		rowIdx is index into model
-		it is not the visual row index if table is sorted
-		we need to find the actual table row with data index {rowIdx}
+		Args:
+			rowIdx (int) The row index into the model.
+				it is not the visual row index if table is sorted
 		"""
-
 		modelIndex = self.myModel.index(rowIdx, 0)  # rowIdx is in 'model' coordinates
 		visualRow = self.proxy.mapFromSource(modelIndex).row()
-
 		logger.info(f'model rowIdx:{rowIdx} corresponds to visual row:{visualRow}')
-
-		# might work, need to also have de-select (somewhere else???)
-		# mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
-		#self.selectionModel().select(modelIndex, mode)
-
 		super().selectRow(visualRow)
 
-	def mySetModel(self, model):
+	def mySelectRows(self, rows : set):
+		"""Make a new row selection from viewer.
 		"""
-		Set the model. Needed so we can show/hide columns
+				
+		# to stop event recursion
+		self.blockUpdate = True
+		
+		self.selectionModel().clear()
+		
+		if rows:
+			indexes = [self.myModel.index(r, 0) for r in rows]  # [QModelIndex]
+			visualRows = [self.proxy.mapFromSource(modelIndex) for modelIndex in indexes]
+
+			mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
+			[self.selectionModel().select(i, mode) for i in visualRows]
+
+		else:
+			#print('  CLEARING SELECTION')
+			self.clearSelection()
+
+	def mySetModel(self, model):
+		""" Set the model. Needed so we can show/hide columns
+
+		Args:
+			model (pandasModel)
 		"""
 		self.myModel = model
 		
@@ -103,153 +107,121 @@ class myTableView(QtWidgets.QTableView):
 		self.setModel(self.proxy)
 		self.myModel.endResetModel()
 		
-		# self.myModel.layoutChanged.emit()
-		# self.myModel.modelReset.emit()
-
-		# was this
-		# self.setModel(model)
-
-		#self.selectionModel().selectionChanged.disconnect(self.on_selectionChanged)
-		'''
-		try:
-			selectionModel = self.selectionModel()
-			if selectionModel is not None:
-				selectionModel.selectionChanged.disconnect(self.on_selectionChanged)
-		except(TypeError) as e:
-			logger.error(e)
-
-		'''
 		self.selectionModel().selectionChanged.connect(self.on_selectionChanged)
+		#self.selectionModel().currentChanged.connect(self.old_on_currentChanged)
 
-	'''
-	# trying to use this to remove tooltip when it comes up as empty ''
-	def viewportEvent(self, event):
-		logger.info('')
-		return True
-	'''
+		# refresh hidden columns, only usefull when we first build interface
+		self._refreshHiddenColumns()
+
+	def mySetColumnHidden(self, colStr : str, hidden : bool):
+		if hidden:
+			self.hiddenColumnSet.add(colStr)  # will not add twice
+		else:
+			if colStr in self.hiddenColumnSet:
+				self.hiddenColumnSet.remove(colStr)
+		self._refreshHiddenColumns()
+		#colIdx = self.myModel._data.columns.get_loc(colStr)
+		#self.setColumnHidden(colIdx, hidden)
+
+	def _refreshHiddenColumns(self):
+		for column in self.myModel._data.columns:
+			colIdx = self.myModel._data.columns.get_loc(column)
+			self.setColumnHidden(colIdx, column in self.hiddenColumnSet)
+
+	def old_on_user_click_row(self, item):
+		"""User clicked a row.
+		
+		Only respond if alt+click. Used to zoom into point
+
+		Args:
+			item (QModelIndex)
+		
+		TODO:
+			This is used so alt+click (option on macos) will work
+				even in row is already selected. This is causing 'double'
+				selection callbacks with on_selectionChanged()
+		"""				
+		# pure PyQt
+		modifiers = QtWidgets.QApplication.keyboardModifiers()
+		#isShift = modifiers == QtCore.Qt.ShiftModifier
+		isAlt = modifiers == QtCore.Qt.AltModifier
+		
+		if not isAlt:
+			return
+		
+		row = self.proxy.mapToSource(item).row()
+		logger.info(f'row:{row}')
+
+		selectedRowList = [row]
+		self.signalSelectionChanged.emit(selectedRowList, isAlt)
 
 	def on_selectionChanged(self, selected, deselected):
-		"""
+		"""Respond to change in selection.
+
 			Args:
 				selected, deselected (QItemSelection)
 
-			TODO: This is always called twice ???
+			Notes:
+				connected to:
+				self.selectionModel().selectionChanged
+		"""
+
+		if self.blockUpdate:
+			self.blockUpdate = False
+			return
+			
+		# pure PyQt
+		modifiers = QtWidgets.QApplication.keyboardModifiers()
+		isShift = modifiers == QtCore.Qt.ShiftModifier
+		isAlt = modifiers == QtCore.Qt.AltModifier
+		
+		# BINGO, don't use params, use self.selectedIndexes()
+		selectedIndexes = [self.proxy.mapToSource(modelIndex).row() for modelIndex in self.selectedIndexes()]
+		
+		# reduce to list of unique values
+		selectedIndexes = set(selectedIndexes)  # to get unique values
+		selectedIndexes = list(selectedIndexes)
+
+		logger.info(f'selectedIndexes:{selectedIndexes}')
+		
+		
+		self.signalSelectionChanged.emit(selectedIndexes, isAlt)
+
+	'''
+	def old_on_currentChanged(self, current, previous):
 		"""
 		
-		modelIndexList = selected.indexes()
-		
-		#QItemSelectionModel
-		#modelIndexList = self.selectionModel().selectedRows()
-		# was this
-		#modelIndexList = self.selectionModel().selectedIndexes()
-		
-		#for modelIndex in modelIndexList:
-		#	print('  modelIndex:', modelIndex, type(modelIndex))  # QModelIndex
-		
-		# use self.proxy.mapToSource to map from sort to 'real' order
-		selectedRowList = [self.proxy.mapToSource(modelIndex).row()
-							for modelIndex in modelIndexList]
-				
-		# convert to sort order
-		#selectedRowList = [
-		#	self.model()._data.index[rowIdx]
-		#	for rowIdx in selectedRowList0]
+		Args:
+			current (QtCore.QModelIndex)
+		"""
+		modifiers = QtWidgets.QApplication.keyboardModifiers()
+		isShift = modifiers == QtCore.Qt.ShiftModifier
 
-		if len(selectedRowList) > 0:
-			selectedRowList = [selectedRowList[0]]
-		
 		logger.info('')
-		print('  selectedRowList:', selectedRowList)
+		print(f'  current:{current.row()}')
+		print(f'  previous:{previous.row()}')
 
-		self.signalSelectionChanged.emit(selectedRowList)
-	
-	def old_contextMenuEvent(self, event):
-		"""
-		Show a context menu on mouse right-click
-		"""
+		selectedRows = self.selectionModel().selectedRows()
+		print(f'  selectedRows:{selectedRows}')
 
-		contextMenu = QtWidgets.QMenu(self)
-		
-		# add menu item actions
-		showCoordinates = contextMenu.addAction("Show Coordinates")
-		showProperties = contextMenu.addAction("Show Properties")
-		contextMenu.addSeparator()
-		copyTable = contextMenu.addAction("Copy Table")
-
-		# show the
-		action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-		#logger.info(f'  action:{action}')
-		if action == showCoordinates:
-			pass
-			#self.signalDuplicateRow.emit(selectedRow)
-		elif action is not None:
-			logger.warning(f'action not taken "{action}"')
-
-		'''
-		contextMenu = QtWidgets.QMenu(self)
-		duplicateRow = contextMenu.addAction("Duplicate Row")
-		contextMenu.addSeparator()
-		deleteRow = contextMenu.addAction("Delete Row")
-		contextMenu.addSeparator()
-		copyTable = contextMenu.addAction("Copy Table")
-		contextMenu.addSeparator()
-		findNewFiles = contextMenu.addAction("Sync With Folder")
-		contextMenu.addSeparator()
-		saveTable = contextMenu.addAction("Save Table")
-		#
-		action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-		#logger.info(f'  action:{action}')
-		if action == duplicateRow:
-			#print('  todo: duplicateRow')
-			tmp = self.selectedIndexes()
-			if len(tmp)>0:
-				selectedRow = tmp[0].row()
-				self.signalDuplicateRow.emit(selectedRow)
-		elif action == deleteRow:
-			#print('  todo: deleteRow')
-			tmp = self.selectedIndexes()
-			if len(tmp)>0:
-				selectedRow = tmp[0].row()
-				self.signalDeleteRow.emit(selectedRow)
-			else:
-				logger.warning('no selection?')
-		elif action == copyTable:
-			#print('  todo: copyTable')
-			self.signalCopyTable.emit()
-		elif action == findNewFiles:
-			#print('  todo: findNewFiles')
-			self.signalFindNewFiles.emit()
-		elif action == saveTable:
-			#print('  todo: saveTable')
-			self.signalSaveFileTable.emit()
-		else:
-			logger.warning(f'action not taken "{action}"')
-		'''
+		#self.signalSelectionChanged.emit(selectedRowList, isShift)
+	'''
 
 class pandasModel(QtCore.QAbstractTableModel):
 
-	signalMyDataChanged = QtCore.pyqtSignal(object, object, object)
+	#signalMyDataChanged = QtCore.pyqtSignal(object, object, object)
+	signalMyDataChanged = QtCore.Signal(object, object, object)
 	"""Emit on user editing a cell."""
 
 	def __init__(self, data):
-		"""
-		Data model for a pandas dataframe
+		"""Data model for a pandas dataframe.
 
 		Args:
 			data (dataframe): pandas dataframe
 		"""
 		QtCore.QAbstractTableModel.__init__(self)
-
-		self.isDirty = False
-
+		
 		self._data = data
-
-		#self.setSortingEnabled(True)
-
-	'''
-	def modelReset(self):
-		print('modelReset()')
-	'''
 
 	def rowCount(self, parent=None):
 		return self._data.shape[0]
@@ -260,26 +232,11 @@ class pandasModel(QtCore.QAbstractTableModel):
 	def data(self, index, role=QtCore.Qt.DisplayRole):
 		if index.isValid():
 			if role == QtCore.Qt.ToolTipRole:
-				# removed
-				# swapped sanpy.bDetection.defaultDetection to a class
-				# do not want to instantiate every time
-				'''
-				# get default value from bAnalysis
-				defaultDetection = sanpy.bDetection.defaultDetection
-				columnName = self._data.columns[index.column()]
-				toolTip = QtCore.QVariant()  # empty tooltip
-				try:
-					toolTip = str(defaultDetection[columnName]['defaultValue'])
-					toolTip += ': ' + defaultDetection[columnName]['description']
-				except (KeyError):
-					pass
-				return toolTip
-				'''
+				# no tooltips here
+				pass
 			elif role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
 				columnName = self._data.columns[index.column()]
 
-				# don't get col from index, get from name
-				#realRow = self._data.index[index.row()]
 				realRow = index.row()
 				retVal = self._data.loc[realRow, columnName]
 				if isinstance(retVal, np.float64):
@@ -287,6 +244,8 @@ class pandasModel(QtCore.QAbstractTableModel):
 				elif isinstance(retVal, np.int64):
 					retVal = int(retVal)
 				elif isinstance(retVal, np.bool_):
+					retVal = str(retVal)
+				elif isinstance(retVal, list):
 					retVal = str(retVal)
 				elif isinstance(retVal, str) and retVal == 'nan':
 					retVal = ''
@@ -296,64 +255,49 @@ class pandasModel(QtCore.QAbstractTableModel):
 					retVal = ''
 				return retVal
 
-			elif role == QtCore.Qt.CheckStateRole:
-				columnName = self._data.columns[index.column()]
-				#realRow = self._data.index[index.row()]
-				realRow = index.row()
-				retVal = self._data.loc[realRow, columnName]
-				if columnName == 'I':
-					if retVal:
-						return QtCore.Qt.Checked
-					else:
-						return QtCore.Qt.Unchecked
-				return QtCore.QVariant()
-
 			elif role == QtCore.Qt.FontRole:
 				#realRow = self._data.index[index.row()]
 				realRow = index.row()
 				columnName = self._data.columns[index.column()]
-				if columnName == 'L':
-					if self._data.isLoaded(realRow):  # or self._data.isSaved(realRow):
-						return QtCore.QVariant(QtGui.QFont('Arial', pointSize=32))
-				elif columnName == 'A':
-					if self._data.isAnalyzed(realRow):  # or self._data.isSaved(realRow):
-						return QtCore.QVariant(QtGui.QFont('Arial', pointSize=32))
-				elif columnName == 'S':
-					if self._data.isSaved(realRow):
-						return QtCore.QVariant(QtGui.QFont('Arial', pointSize=32))
+				if columnName == 'Symbol':
+					# make symbols larger
+					return QtCore.QVariant(QtGui.QFont('Arial', pointSize=16))
 				return QtCore.QVariant()
+
 			elif role == QtCore.Qt.ForegroundRole:
 				columnName = self._data.columns[index.column()]
-				if columnName == 'symbol':
+				if columnName == 'Symbol':
 					# don't get col from index, get from name
 					realRow = self._data.index[index.row()]
-					face_color = self._data.loc[realRow, 'face_color']
-					#retVal = self._data.loc[realRow, columnName]
-					#print('xxx retVal:', retVal)
-					r = face_color[0] * 255
-					g = face_color[1] * 255
-					b = face_color[2] * 255
-					alpha = face_color[3] * 255
-					return QtCore.QVariant(QtGui.QColor(r, g, b, alpha))
-					#return QtCore.QVariant(QtGui.QColor(255, retVal[1], retVal[2]))
+					face_color = self._data.loc[realRow, 'Face Color'] # rgba
+					# TODO: face_color is sometimes a scalar
+					# try:
+					#  _color = (np.array(color.getRgb()) / 255).astype(np.float32)
+					try:
+						r = face_color[0] * 255
+						g = face_color[1] * 255
+						b = face_color[2] * 255
+						alpha = face_color[3] * 255
+						theColor = QtCore.QVariant(QtGui.QColor(r, g, b, alpha))
+						return theColor
+					except (IndexError) as e:
+						logger.error(f'expecting "Face Color"" as list of rgba, got scalar of {face_color}')
+						return QtCore.QVariant()
 				return QtCore.QVariant()
+
 			elif role == QtCore.Qt.BackgroundRole:
 				if index.row() % 2 == 0:
 					return QtCore.QVariant(QtGui.QColor('#444444'))
 				else:
 					return QtCore.QVariant(QtGui.QColor('#666666'))
-
 		#
 		return QtCore.QVariant()
 
-	# def update(self, dataIn):
-	# 	print('  pandasModel.update() dataIn:', dataIn)
+	def old_setData(self, index, value, role=QtCore.Qt.EditRole):
+		"""Respond to user/keyboard edits.
 
-	def setData(self, index, value, role=QtCore.Qt.EditRole):
-		"""
-		Respond to user/keyboard edits.
-
-		True if value is changed. Calls layoutChanged after update.
+			True if value is changed. Calls layoutChanged after update.
+		
 		Returns:
 			False if value is not different from original value.
 		"""
@@ -362,22 +306,10 @@ class pandasModel(QtCore.QAbstractTableModel):
 				rowIdx = index.row()
 				columnIdx = index.column()
 
-				# use to check isEditable
-				'''
-				columnName = self._data.columns[columnIdx]
-				if self.isAnalysisDir:
-					isEditable = self._data.columnIsEditable(columnName)
-					if not isEditable:
-						return False
-				'''
-
-				# in general, DO NOT USE iLoc, use loc as it is absolute (i,j)
+				# in general, DO NOT USE iloc, use loc as it is absolute (i,j)
 				columnName = self._data.columns[index.column()]
-				#realRow = self._data.index[index.row()]
 				realRow = index.row()
 				v = self._data.loc[realRow, columnName]
-				#logger.info(f'Existing value for column "{columnName}" is v: "{v}" {type(v)}')
-				#logger.info(f'  proposed value:"{value}" {type(value)}')
 				if isinstance(v, np.float64):
 					try:
 						if value == '':
@@ -390,7 +322,6 @@ class pandasModel(QtCore.QAbstractTableModel):
 						return False
 
 				# set
-				#logger.info(f'  New value for column "{columnName}" is "{value}" {type(value)}')
 				self._data.loc[realRow, columnName] = value
 				#self._data.iloc[rowIdx, columnIdx] = value
 
@@ -398,26 +329,14 @@ class pandasModel(QtCore.QAbstractTableModel):
 				emitRowDict = self.myGetRowDict(realRow)
 				self.signalMyDataChanged.emit(columnName, value, emitRowDict)
 
-				self.isDirty = True
 				return True
-			elif role == QtCore.Qt.CheckStateRole:
-				rowIdx = index.row()
-				columnIdx = index.column()
-				columnName = self._data.columns[index.column()]
-				#realRow = self._data.index[index.row()]
-				realRow = index.row()
-				logger.info(f'CheckStateRole column:{columnName} value:{value}')
-				if columnName == 'I':
-					self._data.loc[realRow, columnName] = value == 2
-					self.dataChanged.emit(index, index)
-					return QtCore.Qt.Checked
 
 		#
 		return QtCore.QVariant()
 
 	def flags(self, index):
 		if not index.isValid():
-			logger.info('not valid')
+			logger.warning(f'index is not valid: {index}')
 
 		rowIdx = index.row()
 		columnIdx = index.column()
@@ -433,12 +352,6 @@ class pandasModel(QtCore.QAbstractTableModel):
 		theRet = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 		isEditable = False
 		isCheckbox = False
-		'''
-		if self.isAnalysisDir:
-			# columnsDict is a big dict, one key for each column, in analysisDir.sanpyColumns
-			isEditable = self._data.columnIsEditable(columnName)
-			isCheckbox = self._data.columnIsCheckBox(columnName)
-		'''
 		if isEditable:
 			theRet |= QtCore.Qt.ItemIsEditable
 		if isCheckbox:
@@ -463,15 +376,16 @@ class pandasModel(QtCore.QAbstractTableModel):
 
 		return QtCore.QVariant()
 
-	def sort(self, Ncol, order):
+	def old_sort(self, Ncol, order):
+		"""Not used when we have a sort model proxy.
+		"""
 		logger.info(f'Ncol:{Ncol} order:{order}')
 		self.layoutAboutToBeChanged.emit()
 		self._data = self._data.sort_values(self._data.columns[Ncol], ascending=not order)
 		self.layoutChanged.emit()
 
 	def myCopyTable(self):
-		"""
-		Copy model data to clipboard.
+		"""Copy model data to clipboard.
 		"""
 		dfCopy = self._data.copy()
 		dfCopy.to_clipboard(sep='\t', index=False)
@@ -479,8 +393,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 		print('  TODO: make sure table is not garbled. In particular list items and columns with spaces')
 		
 	def myAppendRow(self, dfRow=None):
-		"""
-		Append one row to internal DataFrame
+		"""Append one row to internal DataFrame.
 		
 		Args:
 			dfRow (pd.DataFrame)
@@ -489,77 +402,52 @@ class pandasModel(QtCore.QAbstractTableModel):
 		newRowIdx = len(self._data)
 		self.beginInsertRows(QtCore.QModelIndex(), newRowIdx, newRowIdx)
 
-		#df = self._data
-		#df = df.append(pd.Series(), ignore_index=True)
-		#df = df.reset_index(drop=True)
-		#self._data = df
-
-		#self._data.append(dfRow, ignore_index=True)
-
 		self._data = pd.concat([self._data, dfRow], ignore_index=True)
 
 		self.endInsertRows()
 
-	def myDeleteRow(self, rowIdx):
-		'''
-		# prompt the user for (ok, cancel)
-		msg = QtWidgets.QMessageBox()
-		msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
-		msg.setDefaultButton(QtWidgets.QMessageBox.Ok)
-		msg.setIcon(QtWidgets.QMessageBox.Warning)
-		msg.setText(f'Are you sure you want to delete row {rowIdx}?')
-		msg.setWindowTitle("Delete Row")
-		returnValue = msg.exec_()
-		if returnValue == QtWidgets.QMessageBox.Ok:
-		'''
-		if True:
-			
-			#logger.info(f'rowIdx:{rowIdx} {type(rowIdx)}')
-			
-			self.beginRemoveRows(QtCore.QModelIndex(), rowIdx, rowIdx)
-						
-			#print('  before delete:')
-			#pprint(self._data)
-			
-			# TODO: not sure if we should do assignment (like here) or in place ???
-			self._data = self._data.drop([rowIdx])
-			self._data = self._data.reset_index(drop=True)
-			
-			#print('  after delete:')
-			#pprint(self._data)
+	def myDeleteRows(self, rows :list):
+		"""Delete a list of rows from model.
+		
+		TODO: get update of rows to work
+		"""
+		minRow = min(rows)
+		maxRow = max(rows)
 
-			#
-			self.endRemoveRows()
+		# want this
+		# self.beginRemoveRows(QtCore.QModelIndex(), minRow, maxRow)
+		self.beginResetModel()
 
-	def mySetRow(self, rowList, df):
-		"""Set a number of rows from a pandas dataframe
+		self._data = self._data.drop(rows)
+		self._data = self._data.reset_index(drop=True)
+	
+		# want this
+		# self.endRemoveRows()
+		self.endResetModel()
+
+	def mySetRow(self, rowList : list, df: pd.DataFrame):
+		"""Set a number of rows from a pandas dataframe.
 		
 		Args:
 			rowList (list of int): row indices to change
 			df (pd.Dataframe) new values, EXPLAIN THIS
+				rows of dataframe correspond to enumeration of rowList list
 		"""
 	
-		logger.info(f'rowList:{rowList}')
-		print('  from df:')
-		pprint(df)
+		#logger.info(f'rowList:{rowList}')
+		#print('  from df:')
+		#pprint(df)
 
+		logger.info(f'rowList:{rowList}')
+		
 		for dfIdx, rowIdx in enumerate(rowList):
 			oneRow = df.loc[dfIdx]
 			self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
-
-			# TODO: Is there a more simple way?			
-			# TODO: I do not understand how to signal a data change in one entire row ???
 
 			startIdx = self.index(rowIdx, 0)  # QModelIndex
 			stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex
 			
 			self.dataChanged.emit(startIdx, stopIdx)
-
-			# this is not working
-			#self.dataChanged.emit(startIdx, startIdx, [QtCore.Qt.EditRole,])
-			
-			# try to refresh eveything (does not work)
-			# self.dataChanged.emit(QtCore.QModelIndex, QtCore.QModelIndex, [])
 
 		return True
 
@@ -572,23 +460,3 @@ class pandasModel(QtCore.QAbstractTableModel):
 		else:
 			val = self._data.loc[rowIdx, colStr]
 		return val
-
-	def old_myGetRowDict(self, rowIdx):
-		"""
-		return a dict with selected row as dict (includes detection parameters)
-		"""
-		theRet = {}
-		for column in self._data.columns:
-			theRet[column] = self.old_myGetValue(rowIdx, column)
-		return theRet
-
-	def old_myGetColumnList(self, col):
-		# return all values in column as a list
-		colList = self._data[col].tolist()
-		return colList
-
-	def old_mySaveDb(self, path):
-		#print('pandasModel.mySaveDb() path:', path)
-		#logger.info(f'Saving csv {path}')
-		self._data.to_csv(path, index=False)
-		self.isDirty = False
