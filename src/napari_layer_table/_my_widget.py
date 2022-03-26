@@ -237,10 +237,15 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		#logger.info(f'key press is: {event.text()}')
 		delete_keylist = [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]
 		if event.key() in delete_keylist:
-			logger.info(f'Delete points from layer: {self._layer.selected_data}')
-			self._blockDeleteFromTable = True
-			self._layer.remove_selected()
-			self._blockDeleteFromTable = False
+			selectedData = self._layer.selected_data
+			if not selectedData:
+				logger.warning(f'Nothing to delete, selectedData:{selectedData}')
+			else:
+				logger.info(f'Delete points from layer: {selectedData}')
+				self._blockDeleteFromTable = True
+				self._layer.remove_selected()
+				#self._deleteRows(selectedData)
+				self._blockDeleteFromTable = False
 		else:
 			pass
 			#print(f'  did not understand key {event.text()}')
@@ -665,12 +670,13 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			self.selectInTable(event.source.selected_data)
 
 		elif myEventType == 'delete':
-			deleteRowList = list(event.source.selected_data)
+			deleteRowList = event.source.selected_data
 			logger.info(f'myEventType:{myEventType} deleteRowList:{deleteRowList}')
 
-			self._blockDeleteFromTable = True
-			self.myTable2.myModel.myDeleteRows(deleteRowList)
-			self._blockDeleteFromTable = False
+			self._deleteRows(deleteRowList)
+			#self._blockDeleteFromTable = True
+			#self.myTable2.myModel.myDeleteRows(deleteRowList)
+			#self._blockDeleteFromTable = False
 
 		elif myEventType == 'move':
 			theLayer = event.source  # has the changed points
@@ -681,6 +687,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			myTableData = self.getLayerDataFrame(rowList=moveRowList)
 			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
 
+	def _deleteRows(self, rows : set):
+		self._blockDeleteFromTable = True
+		self.myTable2.myModel.myDeleteRows(rows)
+		self._blockDeleteFromTable = False
+		
 	def slot_user_edit_symbol(self, event):
 		"""Respond to user editing point symbol.
 		
