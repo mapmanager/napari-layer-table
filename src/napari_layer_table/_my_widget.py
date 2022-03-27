@@ -35,7 +35,7 @@ from qtpy import QtWidgets, QtCore  # , QtGui
 
 from napari_layer_table._my_logger import logger
 from napari_layer_table._table_widget import myTableView
-from napari_layer_table._table_widget import pandasModel
+from napari_layer_table._data_model import pandasModel
 
 #
 # see here for searching unicode symbols
