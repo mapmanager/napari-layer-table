@@ -806,7 +806,7 @@ def run():
 	from skimage import data
 	image = data.binary_blobs(length=128, volume_fraction=0.1, n_dim=3)
 	image = image.astype(float)
-	print(f'image: {image.shape} {image.dtype}')
+	logger.info(f'image: {image.shape} {image.dtype}')
 	viewer = napari.Viewer()
 
 	#print('  viewer.dims.point:', viewer.dims.point)

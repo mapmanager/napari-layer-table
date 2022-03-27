@@ -1,7 +1,16 @@
 import logging
+import sys
 
-# log to console
-logger = logging
-level = logging.INFO
-consoleFormat = '%(levelname)5s %(name)8s  %(filename)s %(funcName)s() line:%(lineno)d -- %(message)s'
-logger.basicConfig(format=consoleFormat, level=level)
+# default logging level
+logging_level = logging.INFO
+
+# This will create a custom logger with the name as the module name
+logger = logging.getLogger(__name__)
+logger.setLevel(logging_level)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging_level)
+formatter = logging.Formatter('%(asctime)s - %(levelname)7s - %(name)8s  %(filename)s %(funcName)s() line:%(lineno)d -- %(message)s')
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
