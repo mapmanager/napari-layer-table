@@ -2,7 +2,7 @@ from napari_layer_table import pandasModel
 import numpy as np
 import pandas as pd
 import pytest
-from qtpy import QtCore
+from qtpy import QtCore, QtGui
 
 class MockIndex:
     """
@@ -50,11 +50,31 @@ col_count_test_cases = [
     (np.array([[]]), 0),
 ]
 
-data_test_cases = [
-    (np.array([[50.5, 60.6], [70.7, 80.8]]), MockIndex(0,0), QtCore.Qt.DisplayRole, 50.5),
-    (np.array([[50, 55], [60, 65], [70, 75]]), MockIndex(1,1), QtCore.Qt.DisplayRole, 65),
-    (np.array([[np.bool_(True)], [np.bool_(False)], [np.bool_(False)]]), MockIndex(2,0), QtCore.Qt.DisplayRole, 'False'),
-    (np.array([['nan'], ['12.5'], ['10.0']]), MockIndex(0,0), QtCore.Qt.DisplayRole, ''),
+data_display_role_test_cases = [
+    (np.array([[50.5, 60.6], [70.7, 80.8]]), MockIndex(0,0), 50.5),
+    (np.array([[50, 55], [60, 65], [70, 75]]), MockIndex(1,1), 65),
+    (np.array([[np.bool_(True)], [np.bool_(False)], [np.bool_(False)]]), MockIndex(2,0), 'False'),
+    (np.array([['nan'], ['12.5'], ['10.0']]), MockIndex(0,0), ''),
+]
+
+# data_font_role_test_cases = [
+#     # (np.array([['Symbol'], ['^'], ['+'], ['X']]), MockIndex(1,0), QtCore.QVariant(QtGui.QFont('Arial', pointSize=16))),
+#     (pd.DataFrame().insert(loc=0, column='Symbol', value=[['X']]), MockIndex(1,0), QtCore.QVariant(QtGui.QFont('Arial', pointSize=16)))
+# ]
+
+header_data_test_cases = [
+    (pd.DataFrame([
+          [1, 9, 2],
+          [1, 0, -1],
+        ], columns = ['x', 'y', 'z']), QtCore.Qt.Horizontal, 0, 'x'),
+    (pd.DataFrame([
+          [1, 9],
+          [1, 0],
+        ], columns = ['x', 'y']), QtCore.Qt.Horizontal, 1, 'y'),
+    (pd.DataFrame([
+          [1, 9],
+          [1, 0],
+        ], columns = ['x', 'y']), QtCore.Qt.Vertical, 0, 0),
 ]
 
 @pytest.mark.parametrize('points, expected', init_test_cases)
@@ -92,13 +112,35 @@ def test_column_count(points, expected):
     # Assert
     assert col_count == expected
 
-@pytest.mark.parametrize('points, index, role, expected', data_test_cases)
-def test_data_with_role(points, index, role, expected):
+@pytest.mark.parametrize('points, index, expected', data_display_role_test_cases)
+def test_data_with_display_role(points, index, expected):
     # Arrange
     data_model = pandasModel(pd.DataFrame(points))
 
     # Act
-    actual_data = data_model.data(index, role)
+    actual_data = data_model.data(index, QtCore.Qt.DisplayRole)
+
+    # Assert
+    assert actual_data == expected
+
+# @pytest.mark.parametrize('points, index, expected', data_font_role_test_cases)
+# def test_data_with_font_role(points, index, expected):
+#     # Arrange
+#     data_model = pandasModel(points)
+
+#     # Act
+#     actual_data = data_model.data(index, QtCore.Qt.FontRole)
+
+#     # Assert
+#     assert actual_data.value() == expected.value()
+
+@pytest.mark.parametrize('points, orientation, col, expected', header_data_test_cases)
+def test_header_data(points, orientation, col, expected):
+    # Arrange
+    data_model = pandasModel(points)
+
+    # Act
+    actual_data = data_model.headerData(col, orientation, QtCore.Qt.DisplayRole)
 
     # Assert
     assert actual_data == expected
