@@ -591,6 +591,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		# BUG: does not give the correct layer
 		#layer = event.source
+		if self._onlyOneLayer:
+			return
 
 		layer = self._viewer.layers.selection.active
 		
@@ -637,6 +639,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def slot_user_edit_name(self, event):
 		"""User edited the name of a layer.
 		"""
+		if self._onlyOneLayer:
+			return
 		logger.info(f'name is now: {event.source.name}')
 		self.layerNameLabel.setText(event.source.name)
 

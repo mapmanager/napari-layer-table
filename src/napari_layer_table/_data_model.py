@@ -198,6 +198,9 @@ class pandasModel(QtCore.QAbstractTableModel):
 		Args:
 			dfRow (pd.DataFrame)
 		"""
+		if dfRow.empty:
+			return
+
 		# append one empty row
 		newRowIdx = len(self._data)
 		self.beginInsertRows(QtCore.QModelIndex(), newRowIdx, newRowIdx)
@@ -206,14 +209,16 @@ class pandasModel(QtCore.QAbstractTableModel):
 
 		self.endInsertRows()
 
-	def myDeleteRows(self, rows :list):
+	def myDeleteRows(self, rows: list):
 		"""Delete a list of rows from model.
+
+		Args:
+			rows (list of int): row indices to delete
 		
 		TODO: get update of rows to work
 		"""
-		minRow = min(rows)
-		maxRow = max(rows)
-
+		# minRow = min(rows)
+		# maxRow = max(rows)
 		# want this
 		# self.beginRemoveRows(QtCore.QModelIndex(), minRow, maxRow)
 		self.beginResetModel()
@@ -225,7 +230,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 		# self.endRemoveRows()
 		self.endResetModel()
 
-	def mySetRow(self, rowList : list, df: pd.DataFrame):
+	def mySetRow(self, rowList: list, df: pd.DataFrame):
 		"""Set a number of rows from a pandas dataframe.
 		
 		Args:

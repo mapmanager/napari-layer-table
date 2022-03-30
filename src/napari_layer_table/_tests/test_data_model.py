@@ -38,8 +38,8 @@ init_test_cases = [
 ]
 
 row_count_test_cases = [
-    (np.array([[50, 55], [60, 65], [70, 75]]), 3),
-    (np.array([[50, 55, 66], [50, 60, 65]]), 2),
+    (np.array([[50, 55], [60, 65], [70, 75]]), 3), # 2D array
+    (np.array([[50, 55, 66], [50, 60, 65]]), 2), # 3D array
     (np.array([[]]), 1), # (0, 0) -> 2D array: 1 row, 0 columns
     (np.array([]), 0), # (0,) -> 1D array: 0 rows, no columns
 ]
@@ -75,6 +75,23 @@ header_data_test_cases = [
           [1, 9],
           [1, 0],
         ], columns = ['x', 'y']), QtCore.Qt.Vertical, 0, 0),
+]
+
+my_append_row_test_cases = [
+    (np.array([[50, 55], [60, 65], [70, 75]]), np.array([[40, 50]]), 4),
+    (np.array([[50, 55, 66], [50, 60, 65]]), np.array([[40, 50, 70]]), 3),
+    (np.array([[50, 55, 66], [50, 60, 65]]), None, 2)
+]
+
+my_delete_rows_test_cases = [
+    (np.array([[50, 55], [60, 65], [70, 75]]), [0], 2),
+    (np.array([[50, 55, 66], [50, 60, 65]]), [0,1], 0)
+]
+
+my_set_row_test_cases = [
+    (np.array([[50, 55], [60, 65], [70, 75]]), [2], pd.DataFrame([[80, 85]]), pd.DataFrame([[50, 55], [60, 65], [80, 85]])),
+    (np.array([[50, 55], [60, 65], [70, 75]]), [1,2], pd.DataFrame([[70, 75], [80, 85]]), pd.DataFrame([[50, 55], [70, 75], [80, 85]])),
+    (np.array([[50, 55, 66], [50, 60, 65]]), [0,1], pd.DataFrame([[70, 75, 76], [80, 85, 86]]), pd.DataFrame([[70, 75, 76], [80, 85, 86]]))
 ]
 
 @pytest.mark.parametrize('points, expected', init_test_cases)
@@ -144,3 +161,37 @@ def test_header_data(points, orientation, col, expected):
 
     # Assert
     assert actual_data == expected
+
+@pytest.mark.parametrize('points, new_point, expected_rowcount', my_append_row_test_cases)
+def test_my_append_row(points, new_point, expected_rowcount):
+    # Arrange
+    data_model = pandasModel(pd.DataFrame(points))
+
+    # Act
+    data_model.myAppendRow(pd.DataFrame(new_point))
+
+    # Assert
+    assert data_model.rowCount() == expected_rowcount
+
+@pytest.mark.parametrize('points, points_to_delete, expected_rowcount', my_delete_rows_test_cases)
+def test_my_delete_row(points, points_to_delete, expected_rowcount):
+    # Arrange
+    data_model = pandasModel(pd.DataFrame(points))
+
+    # Act
+    data_model.myDeleteRows(points_to_delete)
+
+    # Assert
+    assert data_model.rowCount() == expected_rowcount
+
+@pytest.mark.parametrize('points, rows_to_set, data_to_set, expected_data', my_set_row_test_cases)
+def test_my_set_row(points, rows_to_set, data_to_set, expected_data):
+    # Arrange
+    data_model = pandasModel(pd.DataFrame(points))
+
+    # Act
+    result = data_model.mySetRow(rows_to_set, data_to_set)
+
+    # Assert
+    assert result == True
+    assert data_model._data.equals(expected_data) == True
