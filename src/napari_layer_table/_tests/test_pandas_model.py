@@ -104,7 +104,7 @@ def test_init(points, expected):
 
     # Assert
     # assert (data_model is not None) == expected
-    assert data_model._data.equals(data) == expected
+    assert data_model.myGetData().equals(data) == expected
 
 
 @pytest.mark.parametrize('points, expected', row_count_test_cases)
@@ -196,4 +196,4 @@ def test_my_set_row(points, rows_to_set, data_to_set, expected_data):
 
     # Assert
     assert result == True
-    assert data_model._data.equals(expected_data) == True
+    assert data_model.myGetData().equals(expected_data) == True

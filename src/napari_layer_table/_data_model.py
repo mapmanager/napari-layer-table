@@ -265,3 +265,6 @@ class pandasModel(QtCore.QAbstractTableModel):
 		else:
 			val = self._data.loc[rowIdx, colStr]
 		return val
+
+	def myGetData(self):
+		return self._data
