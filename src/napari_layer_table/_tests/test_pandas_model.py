@@ -103,7 +103,9 @@ def test_init(points, expected):
     data_model = pandasModel(data)
 
     # Assert
-    assert (data_model is not None) == expected
+    # assert (data_model is not None) == expected
+    assert data_model._data.equals(data) == expected
+
 
 @pytest.mark.parametrize('points, expected', row_count_test_cases)
 def test_row_count(points, expected):
