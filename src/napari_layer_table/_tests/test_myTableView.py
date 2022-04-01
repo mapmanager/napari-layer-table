@@ -2,6 +2,7 @@ from napari_layer_table import pandasModel, myTableView
 import numpy as np
 import pandas as pd
 import pytest
+import logging
 
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -42,6 +43,32 @@ my_set_model_test_cases = [
     (threeDimPoints, pd.DataFrame(threeDimPoints)), # 3D array
     (pointWithoutCoordinates, pd.DataFrame(pointWithoutCoordinates)), # (0, 0) -> 2D array: 1 row, 0 columns
     (noPoints, pd.DataFrame(noPoints)), # (0,) -> 1D array: 0 rows, no columns
+]
+
+my_set_column_hidden_test_cases = [
+    (pd.DataFrame([
+          [1, 9, 2],
+          [1, 0, -1],
+        ], columns = ['x', 'y', 'z']), 'x', True),
+    (pd.DataFrame([
+          [1, 2],
+          [1, -1],
+        ], columns = ['x', 'y']), 'y', False),
+    (pd.DataFrame([
+          [1, 2],
+          [1, -1],
+        ], columns = ['x', 'y']), 'w', True)
+]
+
+my_set_column_hidden_for_unhiding_hidden_columns_test_cases = [
+    (pd.DataFrame([
+          [1, 9, 2],
+          [1, 0, -1],
+        ], columns = ['x', 'y', 'z']), 'x'),
+    (pd.DataFrame([
+          [1, 2],
+          [1, -1],
+        ], columns = ['x', 'y']), 'y'),
 ]
 
 
@@ -147,3 +174,68 @@ def test_my_set_model(table, points, expected_model_data):
     # Assert
     assert table.myModel.myGetData().equals(expected_model_data)
     # pd.testing.assert_frame_equal(table.myModel.myGetData(), expected_model_data)   
+
+@pytest.mark.parametrize('dataframe, colStr, hidden', my_set_column_hidden_test_cases)
+def test_my_Set_Column_Hidden(table, dataframe, colStr, hidden):
+    # Arrange
+    data_model = pandasModel(dataframe)
+    table.mySetModel(data_model)
+
+    # Act
+    table.mySetColumnHidden(colStr, hidden)
+
+    # Assert
+    assert (colStr in table.hiddenColumnSet) == hidden 
+
+@pytest.mark.parametrize('dataframe, colStr', my_set_column_hidden_for_unhiding_hidden_columns_test_cases)
+def test_my_set_column_hidden_for_unhiding_hidden_columns(table, dataframe, colStr):
+    # Arrange
+    data_model = pandasModel(dataframe)
+    table.mySetModel(data_model)
+    table.mySetColumnHidden(colStr, True)
+
+    # Act
+    table.mySetColumnHidden(colStr, False)
+
+    # Assert
+    assert colStr not in table.hiddenColumnSet
+
+def test_on_selection_changed_when_block_update_is_true(table):
+    # Arrange
+    dataframe = pd.DataFrame([
+          [1, 9, 2],
+          [1, 0, -1],
+        ], columns = ['x', 'y', 'z'])
+    data_model = pandasModel(dataframe)
+    table.mySetModel(data_model)
+    table.blockUpdate = True
+
+    # Act
+    table.on_selectionChanged(None, None)
+
+    # Assert
+    assert table.blockUpdate == False
+
+on_selection_changed_test_cases = [
+    (twoDimPoints, {2}, [2]), # 1 row selected
+    (twoDimPoints, {0, 2}, [0, 2]), # non-continuous selection
+    (threeDimPoints, {0, 1, 2}, [0, 1, 2]), # continuous selection
+    (threeDimPoints, {0, 1, 2, 3}, [0, 1, 2, 3]), # all rows selected
+]
+
+@pytest.mark.parametrize('points, selectRowIdxs, expectedLogIdxs', on_selection_changed_test_cases)
+def test_on_selection_changed(table, caplog, points, selectRowIdxs, expectedLogIdxs):
+    # Arrange
+    caplog.set_level(logging.INFO)
+
+    dataframe = pd.DataFrame(points)
+    data_model = pandasModel(dataframe)
+    table.mySetModel(data_model)
+    table.blockUpdate = False
+
+    # Act
+    table.mySelectRows(selectRowIdxs)
+    table.on_selectionChanged(None, None)
+
+    # Assert
+    assert f"selectedIndexes:{expectedLogIdxs}" in caplog.text
