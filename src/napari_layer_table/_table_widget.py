@@ -15,7 +15,8 @@ class myTableView(QtWidgets.QTableView):
 	"""Emit when user changes row selection."""
 
 	def __init__(self, parent=None):
-		super(myTableView, self).__init__(parent)
+		# super(myTableView, self).__init__(parent)
+		super().__init__(parent)
 
 		self.myModel = None
 		
@@ -47,7 +48,7 @@ class myTableView(QtWidgets.QTableView):
 	def getColumns(self):
 		"""Get columns from model.
 		"""
-		return self.myModel._data.columns
+		return self.myModel.myGetData().columns
 
 	def clearSelection(self):
 		"""Over-ride inherited.
