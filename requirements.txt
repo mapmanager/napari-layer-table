@@ -2,3 +2,6 @@ numpy
 pandas
 qtpy
 PyQt5
+pytest-qt
+pytest-cov
+napari
