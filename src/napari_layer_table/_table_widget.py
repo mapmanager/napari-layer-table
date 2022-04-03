@@ -15,7 +15,8 @@ class myTableView(QtWidgets.QTableView):
 	"""Emit when user changes row selection."""
 
 	def __init__(self, parent=None):
-		super(myTableView, self).__init__(parent)
+		# super(myTableView, self).__init__(parent)
+		super().__init__(parent)
 
 		self.myModel = None
 		
@@ -47,7 +48,7 @@ class myTableView(QtWidgets.QTableView):
 	def getColumns(self):
 		"""Get columns from model.
 		"""
-		return self.myModel._data.columns
+		return self.myModel.myGetData().columns
 
 	def clearSelection(self):
 		"""Over-ride inherited.
@@ -124,8 +125,9 @@ class myTableView(QtWidgets.QTableView):
 		#self.setColumnHidden(colIdx, hidden)
 
 	def _refreshHiddenColumns(self):
-		for column in self.myModel._data.columns:
-			colIdx = self.myModel._data.columns.get_loc(column)
+		columns = self.myModel.myGetData().columns
+		for column in columns:
+			colIdx = columns.get_loc(column)
 			self.setColumnHidden(colIdx, column in self.hiddenColumnSet)
 
 	def old_on_user_click_row(self, item):
@@ -179,11 +181,9 @@ class myTableView(QtWidgets.QTableView):
 		selectedIndexes = [self.proxy.mapToSource(modelIndex).row() for modelIndex in self.selectedIndexes()]
 		
 		# reduce to list of unique values
-		selectedIndexes = set(selectedIndexes)  # to get unique values
-		selectedIndexes = list(selectedIndexes)
-
-		logger.info(f'selectedIndexes:{selectedIndexes}')
+		selectedIndexes = list(set(selectedIndexes))  # to get unique values
 		
+		logger.info(f'selectedIndexes:{selectedIndexes}')
 		
 		self.signalSelectionChanged.emit(selectedIndexes, isAlt)
 
