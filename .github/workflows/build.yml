@@ -63,7 +63,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest
+        pytest -s --no-qt-log
       env:
         QT_DEBUG_PLUGINS: 1
 
