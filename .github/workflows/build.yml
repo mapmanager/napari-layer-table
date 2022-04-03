@@ -63,10 +63,10 @@ jobs:
 
     - name: Test with pytest
       run: |
-        printenv
         pytest -s --no-qt-log
       env:
         QT_DEBUG_PLUGINS: 1
+        QT_QPA_PLATFORM: offscreen
         DISPLAY: ":0.0"
 
     - name: Coverage
