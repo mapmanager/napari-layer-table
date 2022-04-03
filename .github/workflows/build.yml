@@ -31,7 +31,7 @@ jobs:
 
     # these libraries enable testing on Qt on linux
     - name: Install Linux dependencies
-      if: runner.os == 'Ubuntu'
+      if: runner.os == 'Linux'
       uses: tlambert03/setup-qt-libs@v1
 
     # strategy borrowed from vispy for installing opengl libs on windows
