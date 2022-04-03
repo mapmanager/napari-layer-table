@@ -34,6 +34,13 @@ jobs:
       if: runner.os == 'Linux'
       uses: tlambert03/setup-qt-libs@v1
 
+    # workaround for testing Qt on linux
+    - name: Workaround for testing Qt on linux
+      if: runner.os == 'Linux'
+      run: |
+        sudo mkdir /usr/bin/platforms
+        sudo ln -s /our/local/libqxcb.so /usr/bin/platforms/libqxcb.so
+
     # strategy borrowed from vispy for installing opengl libs on windows
     - name: Install Windows OpenGL
       if: runner.os == 'Windows'
@@ -57,6 +64,8 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+      env:
+        QT_DEBUG_PLUGINS: 1
 
     - name: Coverage
       uses: codecov/codecov-action@v2
