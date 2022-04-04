@@ -21,6 +21,14 @@ and review the napari docs for plugin developers:
 https://napari.org/plugins/stable/index.html
 -->
 
+## Supported Platforms
+
+|         | Python 3.7 | Python 3.8 | Python 3.9 | Python 3.10
+| ------- | ---------- | ---------- | ---------- | ----------- |
+| Linux   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+| macOS   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+| Windows | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+
 ## Installation
 
 You can install `napari-layer-table` via [pip]:
