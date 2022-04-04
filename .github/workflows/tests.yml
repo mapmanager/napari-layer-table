@@ -60,14 +60,14 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
-      run: |
-        pytest -s --no-qt-log
-      env:
-        QT_DEBUG_PLUGINS: 1
-        QT_QPA_PLATFORM: offscreen
-        DISPLAY: ":0.0"
-    
+    # - name: Test with pytest
+    #   run: |
+    #     pytest -s --no-qt-log
+    #   env:
+    #     QT_DEBUG_PLUGINS: 1
+    #     QT_QPA_PLATFORM: offscreen
+    #     DISPLAY: ":0.0"
+
     # this runs the platform-specific tests declared in tox.ini
     - name: Test with tox
       uses: GabrielBB/xvfb-action@v1

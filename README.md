@@ -1,11 +1,11 @@
 # napari-layer-table
 
-[![License](https://img.shields.io/pypi/l/napari-layer-table.svg?color=green)](https://github.com/mapmanager/napari-layer-table/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-layer-table.svg?color=green)](https://python.org)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<!-- [![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table) -->
+[![Python 3.6](https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg)](https://www.python.org/downloads/release/python-370/)
 [![tests](https://github.com/mapmanager/napari-layer-table/workflows/tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
 [![codecov](https://codecov.io/gh/mapmanager/napari-layer-table/branch/main/graph/badge.svg)](https://codecov.io/gh/mapmanager/napari-layer-table)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table)
+<!-- [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table) -->
 
 A plugin to display a layer as a table.
 
