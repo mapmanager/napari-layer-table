@@ -31,7 +31,6 @@ jobs:
 
     # these libraries enable testing on Qt on linux
     - name: Install Linux dependencies
-      if: runner.os == 'Linux'
       uses: tlambert03/setup-qt-libs@v1
 
     # workaround for testing Qt on linux
