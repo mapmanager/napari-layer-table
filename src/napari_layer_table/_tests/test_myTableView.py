@@ -172,8 +172,9 @@ def test_my_set_model(table, points, expected_model_data):
     table.mySetModel(data_model)
 
     # Assert
-    assert table.myModel.myGetData().equals(expected_model_data)
-    # pd.testing.assert_frame_equal(table.myModel.myGetData(), expected_model_data)   
+    pd.testing.assert_frame_equal(table.myModel.myGetData(), expected_model_data)
+    # The following doesn't work on Windows, probably due to a pandas bug with .equals()
+    # assert table.myModel.myGetData().equals(expected_model_data)
 
 @pytest.mark.parametrize('dataframe, colStr, hidden', my_set_column_hidden_test_cases)
 def test_my_Set_Column_Hidden(table, dataframe, colStr, hidden):
