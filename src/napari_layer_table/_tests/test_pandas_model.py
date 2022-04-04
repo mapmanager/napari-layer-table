@@ -196,4 +196,6 @@ def test_my_set_row(points, rows_to_set, data_to_set, expected_data):
 
     # Assert
     assert result == True
-    assert data_model.myGetData().equals(expected_data) == True
+    pd.testing.assert_frame_equal(data_model.myGetData(), expected_data)
+    # The following doesn't work on Windows, probably due to a pandas bug with .equals()
+    # assert data_model.myGetData().equals(expected_data) == True
