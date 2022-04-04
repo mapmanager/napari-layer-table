@@ -25,9 +25,9 @@ https://napari.org/plugins/stable/index.html
 
 |         | Python 3.7 | Python 3.8 | Python 3.9 | Python 3.10
 | ------- | ---------- | ---------- | ---------- | ----------- |
-| Linux   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
-| macOS   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
-| Windows | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+| Linux   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
+| macOS   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
+| Windows | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
 
 ## Installation
 
