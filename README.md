@@ -1,11 +1,11 @@
 # napari-layer-table
 
-[![License](https://img.shields.io/pypi/l/napari-layer-table.svg?color=green)](https://github.com/mapmanager/napari-layer-table/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-layer-table.svg?color=green)](https://python.org)
-[![tests](https://github.com/mapmanager/napari-layer-table/workflows/tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
-[![codecov](https://codecov.io/gh/mapmanager/napari-layer-table/branch/main/graph/badge.svg)](https://codecov.io/gh/mapmanager/napari-layer-table)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Python](https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![tests](https://github.com/mapmanager/napari-layer-table/workflows/Tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
+[![codecov](https://codecov.io/gh/mapmanager/napari-layer-table/branch/main/graph/badge.svg?token=8S8EFI8NBC)](https://codecov.io/gh/mapmanager/napari-layer-table)
+<!-- [![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table) -->
+<!-- [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table) -->
 
 A plugin to display a layer as a table.
 
@@ -20,6 +20,14 @@ https://github.com/napari/cookiecutter-napari-plugin#getting-started
 and review the napari docs for plugin developers:
 https://napari.org/plugins/stable/index.html
 -->
+
+## Supported Platforms
+
+|         | Python 3.7 | Python 3.8 | Python 3.9 | Python 3.10
+| ------- | ---------- | ---------- | ---------- | ----------- |
+| Linux   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+| macOS   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+| Windows | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
 
 ## Installation
 

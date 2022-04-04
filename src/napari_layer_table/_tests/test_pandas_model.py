@@ -196,4 +196,12 @@ def test_my_set_row(points, rows_to_set, data_to_set, expected_data):
 
     # Assert
     assert result == True
-    assert data_model.myGetData().equals(expected_data) == True
+
+    # Windows considers integers to be int32. We need to convert the dataframe to have int64 values instead
+    df = data_model.myGetData()
+    d = dict.fromkeys(df.select_dtypes(np.int32).columns, np.int64)
+    df = df.astype(d)
+    pd.testing.assert_frame_equal(df, expected_data)
+
+    # The following doesn't work on Windows, probably due to a pandas bug with .equals()
+    # assert data_model.myGetData().equals(expected_data) == True
