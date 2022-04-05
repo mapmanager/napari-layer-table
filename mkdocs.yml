@@ -1,5 +1,5 @@
 site_name: napari-layer-table
-site_description: A plugin to display a layer as a table.
+site_description: A Napari plugin to display a layer as a table.
 site_author: Cudmore Lab
 
 theme: material
