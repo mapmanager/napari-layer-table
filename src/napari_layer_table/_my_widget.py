@@ -1,14 +1,20 @@
 """
 Widget to display points layer as a table.
 
- - The selected layer will be displayed in the table.
+ - The selected layer is displayed in the table.
+ - The table has columns for:
+
+     - Point symbol with face color
+	 - Point coordinates (x,y,z)
+	 - If the layer has properties, these are also columns
+
  - Bi-directional selection between layer and table.
  - Bi-directional delete between layer and table.
  - Points added to the layer are added to the table.
  - Points moved in the layer are updated in the table.
  - Changes to face color and symbol in the layer are updated in the table.
 
- Righ-click popup to:
+ Right-click for context menu to:
 
  - Toggle table columns on/off.
  - Toggle shift+click to add a point to the layer (no need to switch viewer mode)
