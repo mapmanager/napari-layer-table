@@ -61,7 +61,7 @@ class myTableView(QtWidgets.QTableView):
 		"""Select one row.
 		
 		Args:
-			rowIdx (int) The row index into the model.
+			rowIdx (int): The row index into the model.
 				it is not the visual row index if table is sorted
 		"""
 		modelIndex = self.myModel.index(rowIdx, 0)  # rowIdx is in 'model' coordinates
@@ -89,11 +89,11 @@ class myTableView(QtWidgets.QTableView):
 			#print('  CLEARING SELECTION')
 			self.clearSelection()
 
-	def mySetModel(self, model):
+	def mySetModel(self, model : pd.DataFrame):
 		""" Set the model. Needed so we can show/hide columns
 
 		Args:
-			model (pandasModel)
+			model (pd.DataFrame): DataFrame to set model to.
 		"""
 		self.myModel = model
 		
@@ -136,7 +136,7 @@ class myTableView(QtWidgets.QTableView):
 		Only respond if alt+click. Used to zoom into point
 
 		Args:
-			item (QModelIndex)
+			item (QModelIndex): Model index of one row user selection.
 		
 		TODO:
 			This is used so alt+click (option on macos) will work
@@ -161,11 +161,13 @@ class myTableView(QtWidgets.QTableView):
 		"""Respond to change in selection.
 
 			Args:
-				selected, deselected (QItemSelection)
+				selected (QItemSelection):
+				deselected (QItemSelection):
 
 			Notes:
-				connected to:
-				self.selectionModel().selectionChanged
+				- We are not using (selected, deselected) parameters,
+					instead are using self.selectedIndexes()
+				- Connected to: self.selectionModel().selectionChanged
 		"""
 
 		if self.blockUpdate:
@@ -178,7 +180,8 @@ class myTableView(QtWidgets.QTableView):
 		isAlt = modifiers == QtCore.Qt.AltModifier
 		
 		# BINGO, don't use params, use self.selectedIndexes()
-		selectedIndexes = [self.proxy.mapToSource(modelIndex).row() for modelIndex in self.selectedIndexes()]
+		selectedIndexes = [self.proxy.mapToSource(modelIndex).row()
+							for modelIndex in self.selectedIndexes()]
 		
 		# reduce to list of unique values
 		selectedIndexes = list(set(selectedIndexes))  # to get unique values

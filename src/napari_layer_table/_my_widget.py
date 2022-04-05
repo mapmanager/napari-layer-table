@@ -74,7 +74,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		Args:
 			viewer (napari.Viewer): Existing napari viewer.
-			oneLayer (layer) If given then connect to this one layer,
+			oneLayer (layer): If given then connect to this one layer,
 							otherwise, connect to all existing layers.
 		"""
 		super().__init__()
@@ -225,7 +225,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""Connect to one layer.
 		
 			Args:
-				layer (layer) Layer to connect to.
+				layer (layer): Layer to connect to.
 
 		"""
 		if layer is None:
@@ -390,7 +390,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		Only snap when one row is selected, not multiple.
 
 		Args:
-			selectedRow (int)
+			selectedRow (int): The row to snap to.
 			isAlt (bool): If True then center point on (y,x)
 
 		TODO:
@@ -618,9 +618,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""User edited a point in the current layer.
 		
 		This including: (add, delete, move). Also inclludes key press (confusing)
-
-		Args:
-			event (???)
 
 		Notes:
 			On key-press (like delete), we need to ignore event.source.mode
