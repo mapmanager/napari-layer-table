@@ -76,13 +76,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def __init__(self, napari_viewer, oneLayer=None):
 		"""A plugin to display the points in a point layer as a table.
 
-		Implements bi-directional communication with the viewer
-
-		Including:
-			Add (from viewer)
-			Delete (from viewer and table)
-			Move (from viewer)
-			Select (from viewer and table)
+		Implements bi-directional communication with the viewer including:
+		 - Add (from viewer)
+		 - Delete (from viewer and table)
+		 - Move (from viewer)
+		 - Select (from viewer and table)
 
 		Args:
 			viewer (napari viewer)
@@ -557,7 +555,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def slot_selection_changed(self, selectedRowList, isAlt):
 		"""Respond to user selecting a table row.
 
-		Notes:
+		Note:
 			- This is coming from user selection in table,
 				we do not want to propogate
 		"""
