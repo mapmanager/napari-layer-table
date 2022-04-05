@@ -13,11 +13,11 @@ class pandasModel(QtCore.QAbstractTableModel):
 	signalMyDataChanged = QtCore.Signal(object, object, object)
 	"""Emit on user editing a cell."""
 
-	def __init__(self, data):
+	def __init__(self, data : pd.DataFrame):
 		"""Data model for a pandas dataframe.
 
 		Args:
-			data (dataframe): pandas dataframe
+			data (pd.dataframe): pandas dataframe
 		"""
 		QtCore.QAbstractTableModel.__init__(self)
 		
@@ -99,7 +99,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 			True if value is changed. Calls layoutChanged after update.
 		
 		Returns:
-			False if value is not different from original value.
+			(bool): False if value is not different from original value.
 		"""
 		if index.isValid():
 			if role == QtCore.Qt.EditRole:
@@ -192,11 +192,11 @@ class pandasModel(QtCore.QAbstractTableModel):
 		logger.info(f'Copied table to clipboard with num rows: {dfCopy.shape}')
 		print('  TODO: make sure table is not garbled. In particular list items and columns with spaces')
 		
-	def myAppendRow(self, dfRow=None):
+	def myAppendRow(self, dfRow : pd.DataFrame = None):
 		"""Append one row to internal DataFrame.
 		
 		Args:
-			dfRow (pd.DataFrame)
+			dfRow (pd.DataFrame): One row DataFrame to append.
 		"""
 		if dfRow.empty:
 			return
@@ -230,13 +230,13 @@ class pandasModel(QtCore.QAbstractTableModel):
 		# self.endRemoveRows()
 		self.endResetModel()
 
-	def mySetRow(self, rowList: list, df: pd.DataFrame):
+	def mySetRow(self, rowList: list[int], df: pd.DataFrame):
 		"""Set a number of rows from a pandas dataframe.
 		
 		Args:
 			rowList (list of int): row indices to change
-			df (pd.Dataframe) new values, EXPLAIN THIS
-				rows of dataframe correspond to enumeration of rowList list
+			df (pd.Dataframe): DataFrame with new values for each row in rowList.
+				Rows of dataframe correspond to enumeration of rowList list
 		"""
 	
 		#logger.info(f'rowList:{rowList}')

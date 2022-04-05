@@ -1,0 +1,1 @@
+::: napari_layer_table._data_model.pandasModel

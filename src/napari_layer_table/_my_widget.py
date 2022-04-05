@@ -1,37 +1,39 @@
 """
 Widget to display points layer as a table.
 
- - The selected layer will be displayed in the table.
- - Bi-directional selection and delete of point(s) between layer and table.
- - Points added to the layer will be added to the table
- - Points moved in the layer will be updated in the table
+ - The selected layer is displayed in the table.
+ - The table has columns for:
 
- Righ-click popup to:
-    - toggle table columns on/off.
-    - copy table to clipboard
+     - Point symbol with face color
+	 - Point coordinates (x,y,z)
+	 - If the layer has properties, these are also columns
 
- Special feature (in right-click menu) to allow
-	shift+click to add a point to the layer (no need to switch viewer mode)
+ - Bi-directional selection between layer and table.
+ - Bi-directional delete between layer and table.
+ - Points added to the layer are added to the table.
+ - Points moved in the layer are updated in the table.
+ - Changes to face color and symbol in the layer are updated in the table.
 
- See cudmore post here:
-    https://github.com/napari/napari/issues/720
+ Right-click for context menu to:
+
+ - Toggle table columns on/off.
+ - Toggle shift+click to add a point to the layer (no need to switch viewer mode)
+ - Copy table to clipboard
 """
 
 from pprint import pprint
 import sys
 import logging
-#from functools import partial  # for checkbox callbacks
 
 import numpy as np
 import pandas as pd
 
 import napari
+
 # to convert [r,g,b,a] to hex
 # from napari.utils.colormaps.standardize_color import rgb_to_hex
 
-#from PyQt5 import QtWidgets, QtCore, QtGui
 from qtpy import QtWidgets, QtCore  # , QtGui
-
 
 from napari_layer_table._my_logger import logger
 from napari_layer_table._table_widget import myTableView
@@ -39,11 +41,11 @@ from napari_layer_table._data_model import pandasModel
 
 #
 # see here for searching unicode symbols
-# # https://unicode-search.net/unicode-namesearch.pl
+# https://unicode-search.net/unicode-namesearch.pl
 # here, we map napari shape names to unicode characters we can print
 SYMBOL_ALIAS = {
 	'arrow': '\u02C3',
-	'clobber': '\u2663',
+	'clobber': '\u2663',  # no corresponding unicode ?
 	'cross': '\u271A',
 	'diamond': '\u25C6',
 	'disc': '\u26AB',
@@ -59,7 +61,7 @@ SYMBOL_ALIAS = {
 	}
 
 def setsAreEqual(a, b):
-	"""Return true if sets (a, b) are equal.
+	"""Convenience function. Return true if sets (a, b) are equal.
 	"""
 	if len(a) != len(b):
 		return False
@@ -73,75 +75,51 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	#acceptedLayers = (napari.layers.Points, napari.layers.Shapes)
 	acceptedLayers = (napari.layers.Points)
 
-	def __init__(self, napari_viewer, oneLayer=None):
-		"""A plugin to display the points in a point layer as a table.
-
-		Implements bi-directional communication with the viewer
-
-		Including:
-			Add (from viewer)
-			Delete (from viewer and table)
-			Move (from viewer)
-			Select (from viewer and table)
+	def __init__(self, napari_viewer : napari.Viewer, oneLayer=None):
+		"""A widget to display a point layer as a table.
 
 		Args:
-			viewer (napari viewer)
-			oneLayer (layer) If given then connect to this one layer,
+			viewer (napari.Viewer): Existing napari viewer.
+			oneLayer (layer): If given then connect to this one layer,
 							otherwise, connect to all existing layers.
 		"""
 		super().__init__()
 		
 		self._viewer = napari_viewer
 		
-		self._layer = None
-		self._selectedData = None
+		self._layer = None  # current selected layer
+		self._selectedData = None  # current selected data in selected layer
 
 		# used to halt callbacks to prevent signal/slot recursion
 		self._blockUserTableSelection = False
 		self._blockDeleteFromTable = False
 
-		self._showProperties = True
-		"""Toggle point properties columns"""
-		
-		self._showCoordinates = True
-		"""Toggle point coordinates columns"""
-
+		self._showProperties = True  # Toggle point properties columns
+		self._showCoordinates = True  # Toggle point coordinates columns (z,y,x)
+		self._shift_click_for_new = False  # Toggle new points on shift+click
 		#self._showFaceColor = True
-
-		#self._out_of_slice_display = True
-		# see: out_of_slice_display in
-		# https://napari.org/docs/dev/api/napari.layers.Points.html
-
-		self._shift_click_for_new = False
-		"""Allow new points on shift+click. Do not need to set mode to 'add'
-		"""
 		
 		#self.myTable = None
 		self.InitGui()  # order matters, connectLayer() is accessing table
 						# but table has to first be created
 
-		self._onlyOneLayer = None
-		"""If true, will not switch to different layer, requires oneLayer parameter"""
+		# If True, will not switch to different layer
+		self._onlyOneLayer = oneLayer is not None
 
 		if oneLayer:
-			self._onlyOneLayer = True
 			self.connectLayer(oneLayer)
 		else:
-			self._onlyOneLayer = False
 			oneLayer = self._findActiveLayers()
 			if oneLayer is not None:
 				self.connectLayer(oneLayer)
 
+		# slots to detect a change in layer selection
 		self._viewer.layers.events.inserting.connect(self.slot_insert_layer)
 		self._viewer.layers.events.inserted.connect(self.slot_insert_layer)
 		self._viewer.layers.events.removed.connect(self.slot_remove_layer)
 		self._viewer.layers.events.removing.connect(self.slot_remove_layer)
 
 		self._viewer.layers.selection.events.changed.connect(self.slot_select_layer)
-
-		# open self as a dock widget inside napari window
-		#self.area = 'right'
-		#self._dockWidget = self._viewer.window.add_dock_widget(self, area=self.area, name='Layer Table Plugin')
 	
 	def InitGui(self):
 
@@ -187,8 +165,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def on_mouse_drag(self, layer, event):
 		"""Handle user mouse-clicks. Intercept shift+click to make a new point.
 
-		TODO:
-			- Move this out of plugin and put in main mapmanager ???
+		Will only be called when install in _updateMouseCallbacks().
 		"""
 		if 'Shift' in event.modifiers:
 			# make a new point at cursor position
@@ -254,7 +231,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		"""Connect to one layer.
 		
 			Args:
-				layer (layer) Layer to connect to.
+				layer (layer): Layer to connect to.
 
 		"""
 		if layer is None:
@@ -323,14 +300,13 @@ class LayerTablePlugin(QtWidgets.QWidget):
 				# not in list
 				pass
 			
-	def getLayerDataFrame(self, rowList: list = None) -> pd.DataFrame:
+	def getLayerDataFrame(self, rowList: list[int] = None) -> pd.DataFrame:
 		"""Get current layer as a DataFrame.
 		
 		This includes (symbol, coordinates, properties, face color)
 
 		Args:
-			data (np.ndarray)
-			rowList (list): Specify a list of rows to just fetch those rows,
+			rowList (list[int]): Specify a list of rows to just fetch those rows,
 				used to change symbol, color, and on move
 		"""
 		
@@ -387,39 +363,40 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def refresh(self):
 		"""Refresh entire table with current layer.
 		
-		This refreshes entire table (slow).
-		We need to add rowIdx param and just refresh one row.
-		One row refresh occurs on (add, delete, move)
-		One row refresh also should depend on state change of layer like 'marker' or 'face_color'
+		Note:
+			This refreshes entire table (slow).
+			Should only be used on table creation and layer switching.
+			Do not use for edits like add, delete, change/move.
 		"""
 		layerDataFrame = self.getLayerDataFrame()
 		self._refreshTableData(layerDataFrame)
 
-	def _refreshTableData(self, data):
+	def _refreshTableData(self, df : pd.DataFrame):
 		"""Refresh all data in table by setting its data model from provided dataframe.
 
 		Args:
-			data (pd.DataFrame)
+			df (pd.DataFrame): Pandas dataframe to refresh with.
 		"""
 		
 		if self.myTable2 is None:
+			# interface has not been initialized
 			return
 
-		if data is None:
+		if df is None:
 			return
 		
 		logger.info(f'Full refresh ... limit use of this')
 
-		myModel = pandasModel(data)
+		myModel = pandasModel(df)
 		self.myTable2.mySetModel(myModel)
 
-	def snapToPoint(self, selectedRow, isAlt=False):
+	def snapToPoint(self, selectedRow : int, isAlt : bool =False):
 		"""Snap viewer to z-Plane of selected row and optionally to (y,x)
 		
 		Only snap when one row is selected, not multiple.
 
 		Args:
-			selectedRow (int)
+			selectedRow (int): The row to snap to.
 			isAlt (bool): If True then center point on (y,x)
 
 		TODO:
@@ -521,13 +498,14 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		#elif action is not None:
 		#	logger.warning(f'action not taken "{action.text()}"')
 
-	def hideColumns(self, columnType : str, hidden : bool):
+	def hideColumns(self, columnType : str, hidden : bool = True):
 		"""Hide different sets of columns.
 
 		Args:
 			columnType (str): from
-				'coordinates': Show or hide (z, y, x) columns
-				'properties': Show or hide all layer property key columns
+				- 'coordinates': Show or hide (z, y, x) columns.
+				- 'properties': Show or hide all layer property key columns.
+			hidden (bool): If true then column will be hidden, otherwise show.
 		"""
 		logger.info(f'columnType:{columnType} hidden:{hidden}')
 		if columnType == 'coordinates':
@@ -540,11 +518,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		else:
 			logger.warning(f'did not understand columnType:{columnType}')
 
-	def selectInTable(self, selected_data :set):
-		"""Selectin in table in response to viewer (add, highlight).
+	def selectInTable(self, selected_data : set[int]):
+		"""Select in table in response to viewer (add, highlight).
 		
 		Args:
-			selected_data (set)
+			selected_data (set[int]): Set of selected rows to select
 		"""
 		if self._blockDeleteFromTable:
 			#self._blockDeleteFromTable = False
@@ -554,10 +532,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		self.myTable2.mySelectRows(selected_data)
 
-	def slot_selection_changed(self, selectedRowList, isAlt):
+	def slot_selection_changed(self, selectedRowList : list[int], isAlt : bool):
 		"""Respond to user selecting a table row.
 
-		Notes:
+		Note:
 			- This is coming from user selection in table,
 				we do not want to propogate
 		"""
@@ -583,17 +561,15 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		
 		Args:
 			event (Event): event.type == 'changed'
-			
-		Notes:
-			Need to query global viewer. IS selected layer in event???
 		"""
 		#logger.info(f'event.type: {event.type}')
 
-		# BUG: does not give the correct layer
-		#layer = event.source
 		if self._onlyOneLayer:
 			return
 
+		# BUG: does not give the correct layer
+		# Need to query global viewer. Is selected layer in event???
+		# #layer = event.source
 		layer = self._viewer.layers.selection.active
 		
 		if layer is not None:
@@ -649,9 +625,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		
 		This including: (add, delete, move). Also inclludes key press (confusing)
 
-		Args:
-			event (???)
-
 		Notes:
 			On key-press (like delete), we need to ignore event.source.mode
 		"""
@@ -691,7 +664,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			myTableData = self.getLayerDataFrame(rowList=moveRowList)
 			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
 
-	def _deleteRows(self, rows : set):
+	def _deleteRows(self, rows : set[int]):
 		self._blockDeleteFromTable = True
 		self.myTable2.myModel.myDeleteRows(rows)
 		self._blockDeleteFromTable = False
@@ -707,12 +680,17 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		logger.info(f'selectedData:{selectedData}')
 
 		# refresh all
-		self.refresh()
+		#self.refresh()
+
+		selectedRowList = list(selectedData)
+		myTableData = self.getLayerDataFrame(rowList=selectedRowList)
+		self.myTable2.myModel.mySetRow(selectedRowList, myTableData)
 
 	def slot_user_edit_size(self, event):
 		"""Respond to user settting size.
 
 		TODO:
+			- Not implemented
 			- Add 'Size' as a column in getLayerDataFrame()
 		"""		
 		logger.info(f'{event.type}')
