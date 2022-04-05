@@ -2,10 +2,9 @@ from pprint import pprint
 import math
 import numpy as np
 import pandas as pd
-
 from qtpy import QtCore, QtGui, QtWidgets
-
 from napari_layer_table._my_logger import logger
+from typing import List
 
 class pandasModel(QtCore.QAbstractTableModel):
 
@@ -230,7 +229,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 		# self.endRemoveRows()
 		self.endResetModel()
 
-	def mySetRow(self, rowList: list[int], df: pd.DataFrame):
+	def mySetRow(self, rowList: List[int], df: pd.DataFrame):
 		"""Set a number of rows from a pandas dataframe.
 		
 		Args:

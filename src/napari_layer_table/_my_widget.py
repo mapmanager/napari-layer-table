@@ -38,6 +38,7 @@ from qtpy import QtWidgets, QtCore  # , QtGui
 from napari_layer_table._my_logger import logger
 from napari_layer_table._table_widget import myTableView
 from napari_layer_table._data_model import pandasModel
+from typing import List, Set
 
 #
 # see here for searching unicode symbols
@@ -300,7 +301,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 				# not in list
 				pass
 			
-	def getLayerDataFrame(self, rowList: list[int] = None) -> pd.DataFrame:
+	def getLayerDataFrame(self, rowList: List[int] = None) -> pd.DataFrame:
 		"""Get current layer as a DataFrame.
 		
 		This includes (symbol, coordinates, properties, face color)
@@ -518,7 +519,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		else:
 			logger.warning(f'did not understand columnType:{columnType}')
 
-	def selectInTable(self, selected_data : set[int]):
+	def selectInTable(self, selected_data : Set[int]):
 		"""Select in table in response to viewer (add, highlight).
 		
 		Args:
@@ -532,7 +533,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		self.myTable2.mySelectRows(selected_data)
 
-	def slot_selection_changed(self, selectedRowList : list[int], isAlt : bool):
+	def slot_selection_changed(self, selectedRowList : List[int], isAlt : bool):
 		"""Respond to user selecting a table row.
 
 		Note:
@@ -664,7 +665,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			myTableData = self.getLayerDataFrame(rowList=moveRowList)
 			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
 
-	def _deleteRows(self, rows : set[int]):
+	def _deleteRows(self, rows : Set[int]):
 		self._blockDeleteFromTable = True
 		self.myTable2.myModel.myDeleteRows(rows)
 		self._blockDeleteFromTable = False
