@@ -1,0 +1,1 @@
+::: napari_layer_table._table_widget
