@@ -69,7 +69,7 @@ class myTableView(QtWidgets.QTableView):
 		logger.info(f'model rowIdx:{rowIdx} corresponds to visual row:{visualRow}')
 		super().selectRow(visualRow)
 
-	def mySelectRows(self, rows : set):
+	def mySelectRows(self, rows : set[int]):
 		"""Make a new row selection from viewer.
 		"""
 				

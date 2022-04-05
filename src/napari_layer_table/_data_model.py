@@ -13,11 +13,11 @@ class pandasModel(QtCore.QAbstractTableModel):
 	signalMyDataChanged = QtCore.Signal(object, object, object)
 	"""Emit on user editing a cell."""
 
-	def __init__(self, data):
+	def __init__(self, data : pd.DataFrame):
 		"""Data model for a pandas dataframe.
 
 		Args:
-			data (dataframe): pandas dataframe
+			data (pd.dataframe): pandas dataframe
 		"""
 		QtCore.QAbstractTableModel.__init__(self)
 		
