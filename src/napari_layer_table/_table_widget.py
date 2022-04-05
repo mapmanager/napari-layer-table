@@ -2,10 +2,9 @@ from pprint import pprint
 import math
 import numpy as np
 import pandas as pd
-
 from qtpy import QtCore, QtGui, QtWidgets
-
 from napari_layer_table._my_logger import logger
+from typing import Set
 
 class myTableView(QtWidgets.QTableView):
 	"""Table view to display list of points in a point layer.
@@ -69,7 +68,7 @@ class myTableView(QtWidgets.QTableView):
 		logger.info(f'model rowIdx:{rowIdx} corresponds to visual row:{visualRow}')
 		super().selectRow(visualRow)
 
-	def mySelectRows(self, rows : set[int]):
+	def mySelectRows(self, rows : Set[int]):
 		"""Make a new row selection from viewer.
 		"""
 				
