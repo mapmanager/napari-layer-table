@@ -19,6 +19,6 @@ jobs:
               mkdocs-material \
               mkdocstrings \
               mkdocstrings-python
-      - run: printenv && echo $PYTHONPATH && mkdocs gh-deploy --force
+      - run: mkdocs gh-deploy --force
         env:
           PYTHONPATH: src
