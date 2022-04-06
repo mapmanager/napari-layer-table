@@ -7,7 +7,6 @@ A plugin to display a points layer as a table.
 ## Interface overview
 
  - The selected layer is displayed in the table.
- - Testing here too.
  - The table has columns for:
 
      - Point symbol with face color
