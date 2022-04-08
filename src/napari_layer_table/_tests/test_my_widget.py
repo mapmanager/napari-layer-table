@@ -12,6 +12,19 @@ import numpy as np
 import sys
 import logging
 
+threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]])
+twoDimPoints = np.array([[10, 55], [10, 65], [10, 75], [10, 85]])
+
+init_with_points_testcases = [
+    (threeDimPoints, 'green', 'green circles'),
+    (twoDimPoints, 'yellow', 'yellow triangles')
+]
+
+active_layer_testcases = [
+    (threeDimPoints, 'green', 'green circles'),
+    (twoDimPoints, 'yellow', 'yellow triangles')
+]
+
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
     """
 	Verify the creation of a LayerTable widget initialized with an napari viewer with no layers
@@ -43,7 +56,8 @@ def test_initialize_layer_table_widget_with_image_layer_is_successful(make_napar
     assert my_widget is not None
     assert isinstance(my_widget, LayerTablePlugin)
 
-def test_initialize_layer_table_widget_with_image_and_points_layers_is_successful(make_napari_viewer):
+@pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
+def test_initialize_layer_table_widget_with_image_and_points_layers_is_successful(make_napari_viewer, points, face_color, layer_name):
     """
 	Verify the creation of a LayerTable widget initialized with an napari viewer 
     with image and points layers
@@ -54,8 +68,8 @@ def test_initialize_layer_table_widget_with_image_and_points_layers_is_successfu
     axis = 0
     zSlice = 15
     viewer.dims.set_point(axis, zSlice)
-    points1 = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice, 40, 40]])
-    viewer.add_points(points1, size=3, face_color='green', name='green circles')
+    # points = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice, 40, 40]])
+    viewer.add_points(points, size=3, face_color=face_color, name=layer_name)
 
     # Act
     my_widget = LayerTablePlugin(viewer)
@@ -84,7 +98,7 @@ def test_initialize_layer_table_widget_and_connect_to_layer_is_successful(make_n
     assert my_widget is not None
     assert isinstance(my_widget, LayerTablePlugin)
 
-def test_LayerTablePlugin_does_not_connect_image_layer(make_napari_viewer, caplog):
+def test_LayerTablePlugin_does_not_accept_image_layer(make_napari_viewer, caplog):
     """
     Check if the connectLayer method does not accept an image layer and logs a message
     """
@@ -101,22 +115,66 @@ def test_LayerTablePlugin_does_not_connect_image_layer(make_napari_viewer, caplo
     # Assert
     assert f'layer with type {type(image_layer)} was not in {my_widget.acceptedLayers}' in caplog.text
 
-def test_LayerTablePlugin_connects_points_layer(make_napari_viewer):
+@pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
+def test_LayerTablePlugin_accepts_points_layer(make_napari_viewer, points, face_color, layer_name):
+    """
+    Check if connectLayer can connect to points layer
+    """
     # Arrange
     viewer = make_napari_viewer()
     viewer.add_image(np.random.random((100, 100)))
     axis = 0
     zSlice = 15
     viewer.dims.set_point(axis, zSlice)
-    points = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice, 40, 40]])
-    points_layer = viewer.add_points(points, size=3, face_color='green', name='green circles')
+    # points = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice, 40, 40]])
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name)
     my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
 
     # Act: connecting points_layer to layer table plugin
     my_widget.connectLayer(points_layer)
 
     # Assert: checking if the layer was connected using the layerNameLabel
-    assert my_widget.layerNameLabel.text() == 'green circles'
+    assert my_widget.layerNameLabel.text() == layer_name
+
+@pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
+def test_findActiveLayers_when_selected_layer_is_points_layer(make_napari_viewer, points, face_color, layer_name):
+    """
+    Check if _findActiveLayers returns the selected points layer
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act: set the selected layer to points_layer
+    viewer.layers.selection.active = points_layer
+    
+    # Assert: check if the layer returned from _findActiveLayers is the selected points layer
+    assert my_widget._findActiveLayers() == points_layer
+
+@pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
+def test_findActiveLayers_returns_none_when_selected_layer_is_image_layer(make_napari_viewer, points, face_color, layer_name):
+    """
+    Check if _findActiveLayers returns None when selected layer is an image layer
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act: set the selected layer to image_layer
+    viewer.layers.selection.active = image_layer
+    
+    # Assert: check if the layer returned from _findActiveLayers is the selected points layer
+    assert my_widget._findActiveLayers() is None
 
 def test_LayerTablePlugin_updates_layer_name_on_user_rename_of_layer(make_napari_viewer):
     """
