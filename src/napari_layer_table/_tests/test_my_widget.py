@@ -21,9 +21,14 @@ init_with_points_testcases = [
     (twoDimPoints, 'yellow', 'yellow triangles')
 ]
 
-getLayerDataframe_testcases = [
+getLayerDataframe_with_rowlist_testcases = [
     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', [2], pd.DataFrame(np.array([["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
     (twoDimPoints, 'red', 'red triangles layer', '^', [0], pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+]
+
+getLayerDataframe_without_rowlist_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', pd.DataFrame(np.array([["▲", 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["▲", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["▲", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
 ]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
@@ -177,8 +182,8 @@ def test_findActiveLayers_returns_none_when_selected_layer_is_image_layer(make_n
     # Assert: check if the layer returned from _findActiveLayers is the selected points layer
     assert my_widget._findActiveLayers() is None
 
-@pytest.mark.parametrize('points, face_color, layer_name, symbol, rowIdxList, expected_dataframe', getLayerDataframe_testcases)
-def test_getLayerDataframe(make_napari_viewer, points, face_color, layer_name, symbol, rowIdxList, expected_dataframe):
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, rowIdxList, expected_dataframe', getLayerDataframe_with_rowlist_testcases)
+def test_getLayerDataframe_with_rowlist(make_napari_viewer, points, face_color, layer_name, symbol, rowIdxList, expected_dataframe):
     """
     check getLayerDataFrame giving it a row index and checking if we got the desired dataframe
     """
@@ -200,6 +205,31 @@ def test_getLayerDataframe(make_napari_viewer, points, face_color, layer_name, s
     dataframe = dataframe.astype(d)
 
     pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, expected_dataframe', getLayerDataframe_without_rowlist_testcases)
+def test_getLayerDataframe_without_rowlist(make_napari_viewer, points, face_color, layer_name, symbol, expected_dataframe):
+    """
+    check getLayerDataFrame giving it a row index and checking if we got the desired dataframe
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    dataframe = my_widget.getLayerDataFrame(rowList=None)
+
+    # Assert
+
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+
 
 def test_LayerTablePlugin_updates_layer_name_on_user_rename_of_layer(make_napari_viewer):
     """
