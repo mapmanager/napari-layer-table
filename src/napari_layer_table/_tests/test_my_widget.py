@@ -187,8 +187,10 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_deleted(make_napari_v
     my_widget.connectLayer(points_layer)
     initial_points_count = my_widget.myTable2.getNumRows()
 
-    # Act: delete the first point in the points layer ([zSlice, 10, 10])
-    new_points_data = np.delete(points, 0, axis=axis)
+    # Act: select and delete the first point in the points layer ([zSlice, 10, 10])
+    point_index = 0
+    points_layer.selected_data = {point_index}
+    new_points_data = np.delete(points, point_index, axis=axis)
     points_layer.data = new_points_data
     sleep(1)
     updated_points_count = my_widget.myTable2.getNumRows()
