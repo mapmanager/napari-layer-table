@@ -623,8 +623,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def slot_user_edit_name(self, event):
 		"""User edited the name of a layer.
 		"""
-		if self._onlyOneLayer:
-			return
+		# if self._onlyOneLayer:
+		# 	return
 		logger.info(f'name is now: {event.source.name}')
 		self.layerNameLabel.setText(event.source.name)
 
@@ -664,7 +664,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			#self._blockDeleteFromTable = True
 			#self.myTable2.myModel.myDeleteRows(deleteRowList)
 			#self._blockDeleteFromTable = False
-			
 			self.signalDataChanged.emit(myEventType, deletedDataFrame)
 
 		elif myEventType == 'move':
