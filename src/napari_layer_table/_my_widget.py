@@ -76,6 +76,13 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	#acceptedLayers = (napari.layers.Points, napari.layers.Shapes)
 	acceptedLayers = (napari.layers.Points)
 
+	signalDataChanged = QtCore.Signal(object, object)
+	"""Emit signal to the external applictaion using this plugin when user adds/deletes/moves points.
+	   Emits:
+	   	1. event type which can be "add", "move" or "delete" 
+		2. pandas dataframe for the edited row
+	"""
+
 	def __init__(self, napari_viewer : napari.Viewer, oneLayer=None):
 		"""A widget to display a point layer as a table.
 
@@ -121,7 +128,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self._viewer.layers.events.removing.connect(self.slot_remove_layer)
 
 		self._viewer.layers.selection.events.changed.connect(self.slot_select_layer)
-	
+
 	def InitGui(self):
 
 		# main vertical layout
@@ -646,24 +653,28 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			myTableData = self.getLayerDataFrame(rowList=addedRowList)
 			self.myTable2.myModel.myAppendRow(myTableData)
 			self.selectInTable(event.source.selected_data)
+			self.signalDataChanged.emit(myEventType, myTableData)
 
 		elif myEventType == 'delete':
 			deleteRowList = event.source.selected_data
 			logger.info(f'myEventType:{myEventType} deleteRowList:{deleteRowList}')
-
+			index = list(deleteRowList)[0]
+			deletedDataFrame = self.myTable2.myModel.myGetData().iloc[[index]]
 			self._deleteRows(deleteRowList)
 			#self._blockDeleteFromTable = True
 			#self.myTable2.myModel.myDeleteRows(deleteRowList)
 			#self._blockDeleteFromTable = False
+			
+			self.signalDataChanged.emit(myEventType, deletedDataFrame)
 
 		elif myEventType == 'move':
 			theLayer = event.source  # has the changed points
-			moveRowList = list(event.source.selected_data)
-			logger.info(f'myEventType:{myEventType} moveRowList:{moveRowList}')
-			
+			moveRowList = list(event.source.selected_data) #rowList is actually indexes
 			# assuming self._layer is already updated
+			logger.info(f'myEventType:{myEventType} moveRowList:{moveRowList}')
 			myTableData = self.getLayerDataFrame(rowList=moveRowList)
 			self.myTable2.myModel.mySetRow(moveRowList, myTableData)
+			self.signalDataChanged.emit(myEventType, myTableData)
 
 	def _deleteRows(self, rows : Set[int]):
 		self._blockDeleteFromTable = True
