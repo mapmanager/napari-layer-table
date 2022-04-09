@@ -13,6 +13,9 @@ import pandas as pd
 import sys
 import logging
 
+class MockEvent(object):
+    pass
+
 threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]]) # napari treates it as z: 15, y: 55, x:66 -> in our table its z: 15, x: 66, y: 55
 twoDimPoints = np.array([[10, 55], [10, 65], [10, 75], [10, 85]])
 
@@ -38,6 +41,16 @@ hideColumns_testcases = [
 slot_user_move_data_testcases = [
     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', np.array([[15, 50, 66]]), pd.DataFrame(np.array([["▲", 15, 66, 50, [1.0, 1.0, 0.0, 1.0]], ["▲", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["▲", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
     (twoDimPoints, 'red', 'red triangles layer', '^', np.array([[10, 60]]), pd.DataFrame(np.array([["▲", 10, 60, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+]
+
+slot_insert_layer_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^'),
+    (twoDimPoints, 'red', 'red triangles layer', '^')
+]
+
+slot_edit_symbol_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["✚", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["✚", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["✚", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 10, 55, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
 ]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
@@ -150,6 +163,85 @@ def test_LayerTablePlugin_accepts_points_layer(make_napari_viewer, points, face_
 
     # Assert: checking if the layer was connected using the layerNameLabel
     assert my_widget.layerNameLabel.text() == layer_name
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', slot_insert_layer_testcases)
+def test_slot_insert_layer(make_napari_viewer, points, face_color, layer_name, symbol):
+    """
+    Check if new layer is inserted
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    my_widget = LayerTablePlugin(viewer)
+    
+    # Act: connecting points_layer to layer table plugin
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    event = MockEvent()
+    event.type = "inserted"
+    event.index = 0
+    event.value = points_layer
+    my_widget.slot_insert_layer(event=event)
+
+    # Assert: checking if the layer was connected using the layerNameLabel
+    assert my_widget.layerNameLabel.text() == layer_name
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', slot_insert_layer_testcases)
+def test_slot_remove_layer(make_napari_viewer, caplog, points, face_color, layer_name, symbol):
+    """
+    Check if layer is removed
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    my_widget = LayerTablePlugin(viewer)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+
+    LOGGER = logging.getLogger(__name__)
+    caplog.set_level(logging.INFO)
+
+    # Act: removing some data
+    viewer.layers.clear()
+    event = MockEvent()
+    event.type = "removed"
+    event.value = points_layer
+    my_widget.slot_insert_layer(event=event)
+
+    # Assert: checking if the layer was removed
+    assert f'Removed layer "{layer_name}"' in caplog.text
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, new_symbol, expected_dataframe', slot_edit_symbol_testcases)
+def test_slot_user_edit_symbol(make_napari_viewer, points, face_color, layer_name, symbol, new_symbol, expected_dataframe):
+    """
+    check if edit symbol edits dataframe symbol
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    point_index = 0
+    points_layer.selected_data = {point_index}
+    points_layer.symbol = new_symbol
+    event = MockEvent()
+    my_widget.slot_user_edit_symbol(event)
+    dataframe = my_widget.myTable2.myModel.myGetData()
+
+    # Assert
+    dataframe = my_widget.myTable2.myModel.myGetData()
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
 
 @pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
 def test_findActiveLayers_when_selected_layer_is_points_layer(make_napari_viewer, points, face_color, layer_name):
@@ -370,9 +462,6 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_deleted(make_napari_v
     assert updated_points_count == len(new_points_data)
     assert updated_points_count == initial_points_count - 1
 
-class MockEvent(object):
-    pass
-
 @pytest.mark.parametrize('points, face_color, layer_name, symbol, new_point_coordinates, expected_dataframe', slot_user_move_data_testcases)
 def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_viewer, points, face_color, layer_name, symbol, new_point_coordinates, expected_dataframe):
     """
@@ -406,4 +495,7 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_vie
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
     pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+
+
+
     
