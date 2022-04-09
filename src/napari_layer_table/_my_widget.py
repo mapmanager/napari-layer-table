@@ -685,17 +685,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		
 		For now, update the entire table. Not sure if napari allows symbols for individual points.
 		"""
-		#layer = self._viewer.layers.selection.active
-		#if isinstance(layer, self.acceptedLayers):
-		selectedData = self._layer.selected_data
-		logger.info(f'selectedData:{selectedData}')
-
-		# refresh all
-		#self.refresh()
-
-		selectedRowList = list(selectedData)
-		myTableData = self.getLayerDataFrame(rowList=selectedRowList)
-		self.myTable2.myModel.mySetRow(selectedRowList, myTableData)
+		myTableData = self.getLayerDataFrame()
+		rowCount = self.myTable2.myModel.rowCount()
+		self.myTable2.myModel.mySetRow(list(range(rowCount)), myTableData)
 
 	def slot_user_edit_size(self, event):
 		"""Respond to user settting size.
