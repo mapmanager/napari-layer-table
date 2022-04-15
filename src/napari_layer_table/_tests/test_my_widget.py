@@ -241,7 +241,7 @@ def test_slot_user_edit_symbol(make_napari_viewer, points, face_color, layer_nam
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
 
-    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
 @pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
 def test_findActiveLayers_when_selected_layer_is_points_layer(make_napari_viewer, points, face_color, layer_name):
@@ -305,7 +305,7 @@ def test_getLayerDataframe_with_rowlist(make_napari_viewer, points, face_color, 
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
 
-    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
 @pytest.mark.parametrize('points, face_color, layer_name, symbol, expected_dataframe', getLayerDataframe_without_rowlist_testcases)
 def test_getLayerDataframe_without_rowlist(make_napari_viewer, points, face_color, layer_name, symbol, expected_dataframe):
@@ -329,7 +329,7 @@ def test_getLayerDataframe_without_rowlist(make_napari_viewer, points, face_colo
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
 
-    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
 @pytest.mark.parametrize('points, face_color, layer_name, symbol, expected_dataframe', getLayerDataframe_without_rowlist_testcases)
 def test_on_refresh_button(make_napari_viewer, points, face_color, layer_name, symbol, expected_dataframe):
@@ -353,7 +353,7 @@ def test_on_refresh_button(make_napari_viewer, points, face_color, layer_name, s
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
 
-    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
 # @pytest.mark.parametrize('points, face_color, layer_name, symbol, columnType, expected_dataframe', hideColumns_testcases)
 # def test_hideColumns(make_napari_viewer, points, face_color, layer_name, symbol, columnType, expected_dataframe):
@@ -494,8 +494,9 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_vie
     # Assert: checking if the table data was updated
     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
     dataframe = dataframe.astype(d)
-    pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
-
+# @pytest.mark.parametrize('points, face_color, layer_name, symbol, new_face_color, expected_dataframe', slot_user_move_data_testcases)
+# def test_LayerTable_Plugin_updates_face_color_when_face_color_is_changed(make_napari_viewer, points, face_color, layer_name, symbol, new_face_color, expected_dataframe):
 
     
