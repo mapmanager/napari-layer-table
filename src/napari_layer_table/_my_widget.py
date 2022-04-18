@@ -33,7 +33,7 @@ import napari
 # to convert [r,g,b,a] to hex
 # from napari.utils.colormaps.standardize_color import rgb_to_hex
 
-from qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtWidgets, QtCore  # , QtGui
 
 from napari_layer_table._my_logger import logger
 from napari_layer_table._table_widget import myTableView
@@ -83,19 +83,13 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		2. pandas dataframe for the edited row
 	"""
 
-	def __init__(self, napari_viewer : napari.Viewer,
-					oneLayer=None,
-					onAddCallback=None):
+	def __init__(self, napari_viewer : napari.Viewer, oneLayer=None):
 		"""A widget to display a point layer as a table.
 
 		Args:
 			viewer (napari.Viewer): Existing napari viewer.
 			oneLayer (layer): If given then connect to this one layer,
 							otherwise, connect to all existing layers.
-			onAddCallback (def) function callback on adding points
-
-		TODO (cudmore) check params and return of onAddCallback
-			takes a string and returns ???
 		"""
 		super().__init__()
 		
@@ -120,16 +114,13 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# If True, will not switch to different layer
 		self._onlyOneLayer = oneLayer is not None
 
-		if oneLayer is not None:
+		if oneLayer:
 			self.connectLayer(oneLayer)
 		else:
 			oneLayer = self._findActiveLayers()
-			#if oneLayer is not None:
-			#	self.connectLayer(oneLayer)
-			self.connectLayer(oneLayer)
+			if oneLayer is not None:
+				self.connectLayer(oneLayer)
 
-		self._onAddCallback = onAddCallback
-		
 		# slots to detect a change in layer selection
 		self._viewer.layers.events.inserting.connect(self.slot_insert_layer)
 		self._viewer.layers.events.inserted.connect(self.slot_insert_layer)
@@ -148,21 +139,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		# full refresh of table
 		refreshButton = QtWidgets.QPushButton('Refresh')
-		refreshButton.setToolTip('Refresh the entire table')
 		refreshButton.clicked.connect(self.on_refresh_button)
 		controls_hbox_layout.addWidget(refreshButton)
-
-		# bring layer to front in napari viewer
-		bringToFrontButton = QtWidgets.QPushButton('btf')
-		bringToFrontButton.setToolTip('Bring layer to front')
-		# want to set an icon, temporary use built in is SP_TitleBarNormalButton
-		#TODO (cudmore) install our own .svg icons, need to use .qss file
-		style = self.style()
-		bringToFrontButton.setIcon(
-						style.standardIcon(QtWidgets.QStyle.SP_FileIcon))
-
-		bringToFrontButton.clicked.connect(self.on_bring_to_front_button)
-		controls_hbox_layout.addWidget(bringToFrontButton)
 
 		# the current layer name
 		self.layerNameLabel = QtWidgets.QLabel('')
@@ -191,14 +169,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def on_refresh_button(self):
 		logger.info('')
 		self.refresh()
-
-	def on_bring_to_front_button(self):
-		"""Bring the layer to the front in napari viewer.
-		"""
-		logger.info('')
-		if self._viewer.layers.selection.active != self._layer:
-			#print('  seting layer in viewer')
-			self._viewer.layers.selection.active = self._layer
 
 	def on_mouse_drag(self, layer, event):
 		"""Handle user mouse-clicks. Intercept shift+click to make a new point.
@@ -268,22 +238,19 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	def connectLayer(self, layer):
 		"""Connect to one layer.
 		
-		Args:
-			layer (layer): Layer to connect to.
+			Args:
+				layer (layer): Layer to connect to.
 
-		TODO:
-			Need to handle layer=None and just empty the interface
 		"""
-		#if layer is None:
-		#	return
+		if layer is None:
+			return
 		
-		if layer is not None and not isinstance(layer, self.acceptedLayers):
+		if not isinstance(layer, self.acceptedLayers):
 			logger.warning(f'layer with type {type(layer)} was not in {self.acceptedLayers}')
 			return
 
 		logger.info(f'Connecting to layer "{layer}"')
 
-		# disconnect from existing (previous) layer
 		if self._layer is not None:
 			self._layer.events.data.disconnect(self.slot_user_edit_data)
 			self._layer.events.name.disconnect(self.slot_user_edit_name)
@@ -297,20 +264,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		
 		self._layer = layer
 		
-		# if layer is None, hide interface
-		if self._layer is None:
-			logger.info('no layer selection ,hiding interface')
-			# TODO (cudmore) the following is not needed, just hide the widget
-			#emptyDataFrame = pd.DataFrame()
-			# set name to ''
-			#self.layerNameLabel.setText('')
-			# set table to empty
-			#self._refreshTableData(emptyDataFrame)
-			self.hide()
-			return
-		else:
-			self.show()
-
 		# display the name of the layer
 		self.layerNameLabel.setText(self._layer.name)
 
@@ -365,9 +318,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 				used to change symbol, color, and on move
 		"""
 		
-		if self._layer is None:
-			return None
-
 		data = self._layer.data
 
 		if data is None:
@@ -380,8 +330,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
 		df = pd.DataFrame()
 		
-		df['rowIdx'] = rowList
-
 		# coordinates
 		if data.shape[1] == 3:
 			df['z'] = data[rowList,0]
@@ -394,9 +342,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			logger.error(f'got bad data shape {data.shape}')
 		
 		# properties
-		#logger.info(f'getting properties rowList:{rowList}')
 		for k,v in self._layer.properties.items():
-			#print(f'{k}:{v[rowList]}')
 			df[k] = v[rowList]
 
 		# symbol
@@ -634,11 +580,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# #layer = event.source
 		layer = self._viewer.layers.selection.active
 		
-		#if layer is not None:
-		#	if layer != self._layer:
-		#		self.connectLayer(layer)
-		if layer != self._layer:
-			self.connectLayer(layer)
+		if layer is not None:
+			if layer != self._layer:
+				self.connectLayer(layer)
 
 	def slot_insert_layer(self, event):
 		"""Respond to new layer in viewer.
@@ -656,7 +600,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			self.connectLayer(layer)
 
 	def slot_remove_layer(self, event):
-		"""Respond to layer delete in viewer.
+		"""Resopnd to layer delete in viewer.
 		"""
 
 		if self._onlyOneLayer:
@@ -673,8 +617,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			# TODO: does not work, newSelectedLayer is always None
 			# we are not receiving new layer selection
 			# do it manually from current state of the viewer
-			newSelectedLayer = self._viewer.layers.selection.active
-			self.connectLayer(newSelectedLayer)
+			#newSelectedLayer = self._viewer.layers.selection.active
+			#self.connectLayer(newSelectedLayer)
 
 	def slot_user_edit_name(self, event):
 		"""User edited the name of a layer.
@@ -701,45 +645,22 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		else:
 			myEventType = 'move'
 		
-		#logger.info('')
-		#print('  currentNumRows:', currentNumRows)
-		#print('  len(event.source.data):', len(event.source.data))
-
 		if myEventType == 'add':
 			theLayer = event.source  # has the new point
 			addedRowList = list(event.source.selected_data)
 			logger.info(f'myEventType:{myEventType} addedRowList:{addedRowList}')
 
-			if self._onAddCallback is not None:
-				# TODO (cudmore) this also needs to update (face_color, symbol)
-				returnDict = self._onAddCallback(addedRowList, event.source.properties)
-				if returnDict is not None:
-					print(f'{self._onAddCallback} returnDict:')
-					for k,v in returnDict.items():
-						print(f'  {k}: {v}')
-					
-					# modify napari layer properties
-					#updateLayer = event.source  # does not update
-					updateLayer = self._layer  # does update
-					updateLayer.properties['roiType'][addedRowList] = returnDict['roiType']
-					updateLayer.face_color[addedRowList] = returnDict['face_color']
-					updateLayer.size[addedRowList] = returnDict['size']
-
-					# above is working but we need to trigger an update in viewer?
-					# this interferes with event chain --> causes errors
-					# updateLayer.events.face_color()
-				
 			myTableData = self.getLayerDataFrame(rowList=addedRowList)
 			self.myTable2.myModel.myAppendRow(myTableData)
 			self.selectInTable(event.source.selected_data)
 			self.signalDataChanged.emit(myEventType, myTableData)
 
 		elif myEventType == 'delete':
-			deleteRowSet = event.source.selected_data
-			logger.info(f'myEventType:{myEventType} deleteRowSet:{deleteRowSet}')
-			#index = list(deleteRowSet)[0]
-			deletedDataFrame = self.myTable2.myModel.myGetData().iloc[list(deleteRowSet)]
-			self._deleteRows(deleteRowSet)
+			deleteRowList = event.source.selected_data
+			logger.info(f'myEventType:{myEventType} deleteRowList:{deleteRowList}')
+			index = list(deleteRowList)[0]
+			deletedDataFrame = self.myTable2.myModel.myGetData().iloc[[index]]
+			self._deleteRows(deleteRowList)
 			#self._blockDeleteFromTable = True
 			#self.myTable2.myModel.myDeleteRows(deleteRowList)
 			#self._blockDeleteFromTable = False
@@ -784,9 +705,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# list of [nxm] sizes with n points and m dimensions for each size
 		sizes = layer.size
 		selected_data = layer.selected_data
-		
-		#print('  selected_data:', selected_data)
-		#print('  sizes:', sizes)
+		print('  selected_data:', selected_data)
+		print('  sizes:', sizes)
 
 	def slot_user_edit_highlight(self, event):
 		"""Respond to user selection of point(s)

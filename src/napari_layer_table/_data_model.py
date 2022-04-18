@@ -145,7 +145,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 			columnName = self._data.columns[columnIdx]
 		except(IndexError) as e:
 			logger.warning(f'IndexError for columnIdx:{columnIdx} len:{len(self._data.columns)}')
-			print('  self._data.columns:', self._data.columns)
+			print('self._data.columns:', self._data.columns)
 			raise
 
 		theRet = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
@@ -246,8 +246,6 @@ class pandasModel(QtCore.QAbstractTableModel):
 		
 		for dfIdx, rowIdx in enumerate(rowList):
 			oneRow = df.loc[dfIdx]
-			
-			#IndexError: iloc cannot enlarge its target object
 			self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
 
 			startIdx = self.index(rowIdx, 0)  # QModelIndex
