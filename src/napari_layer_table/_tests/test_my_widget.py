@@ -9,10 +9,14 @@ from time import sleep
 import pytest
 from napari_layer_table import LayerTablePlugin
 import numpy as np
+import pandas as pd
 import sys
 import logging
 
-threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]])
+class MockEvent(object):
+    pass
+
+threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]]) # napari treates it as z: 15, y: 55, x:66 -> in our table its z: 15, x: 66, y: 55
 twoDimPoints = np.array([[10, 55], [10, 65], [10, 75], [10, 85]])
 
 init_with_points_testcases = [
@@ -20,9 +24,33 @@ init_with_points_testcases = [
     (twoDimPoints, 'yellow', 'yellow triangles')
 ]
 
-active_layer_testcases = [
-    (threeDimPoints, 'green', 'green circles'),
-    (twoDimPoints, 'yellow', 'yellow triangles')
+getLayerDataframe_with_rowlist_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', [2], pd.DataFrame(np.array([["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', [0], pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+]
+
+getLayerDataframe_without_rowlist_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', pd.DataFrame(np.array([["▲", 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["▲", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["▲", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+]
+
+hideColumns_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', 'coordinates', pd.DataFrame(np.array([["▲"], ["▲"], ["▲"], ["▲"]]))),
+]
+
+slot_user_move_data_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', np.array([[15, 50, 66]]), pd.DataFrame(np.array([["▲", 15, 66, 50, [1.0, 1.0, 0.0, 1.0]], ["▲", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["▲", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["▲", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', np.array([[10, 60]]), pd.DataFrame(np.array([["▲", 10, 60, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["▲", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+]
+
+slot_insert_layer_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^'),
+    (twoDimPoints, 'red', 'red triangles layer', '^')
+]
+
+slot_edit_symbol_testcases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["✚", 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["✚", 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["✚", 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'red', 'red triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 10, 55, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 75, [1.0, 0.0, 0.0, 1.0]], ["✚", 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
 ]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
@@ -136,6 +164,85 @@ def test_LayerTablePlugin_accepts_points_layer(make_napari_viewer, points, face_
     # Assert: checking if the layer was connected using the layerNameLabel
     assert my_widget.layerNameLabel.text() == layer_name
 
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', slot_insert_layer_testcases)
+def test_slot_insert_layer(make_napari_viewer, points, face_color, layer_name, symbol):
+    """
+    Check if new layer is inserted
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    my_widget = LayerTablePlugin(viewer)
+    
+    # Act: connecting points_layer to layer table plugin
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    event = MockEvent()
+    event.type = "inserted"
+    event.index = 0
+    event.value = points_layer
+    my_widget.slot_insert_layer(event=event)
+
+    # Assert: checking if the layer was connected using the layerNameLabel
+    assert my_widget.layerNameLabel.text() == layer_name
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', slot_insert_layer_testcases)
+def test_slot_remove_layer(make_napari_viewer, caplog, points, face_color, layer_name, symbol):
+    """
+    Check if layer is removed
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    my_widget = LayerTablePlugin(viewer)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+
+    LOGGER = logging.getLogger(__name__)
+    caplog.set_level(logging.INFO)
+
+    # Act: removing some data
+    viewer.layers.clear()
+    event = MockEvent()
+    event.type = "removed"
+    event.value = points_layer
+    my_widget.slot_insert_layer(event=event)
+
+    # Assert: checking if the layer was removed
+    assert f'Removed layer "{layer_name}"' in caplog.text
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, new_symbol, expected_dataframe', slot_edit_symbol_testcases)
+def test_slot_user_edit_symbol(make_napari_viewer, points, face_color, layer_name, symbol, new_symbol, expected_dataframe):
+    """
+    check if edit symbol edits dataframe symbol
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    point_index = 0
+    points_layer.selected_data = {point_index}
+    points_layer.symbol = new_symbol
+    event = MockEvent()
+    my_widget.slot_user_edit_symbol(event)
+    dataframe = my_widget.myTable2.myModel.myGetData()
+
+    # Assert
+    dataframe = my_widget.myTable2.myModel.myGetData()
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
 @pytest.mark.parametrize('points, face_color, layer_name', init_with_points_testcases)
 def test_findActiveLayers_when_selected_layer_is_points_layer(make_napari_viewer, points, face_color, layer_name):
     """
@@ -176,6 +283,103 @@ def test_findActiveLayers_returns_none_when_selected_layer_is_image_layer(make_n
     # Assert: check if the layer returned from _findActiveLayers is the selected points layer
     assert my_widget._findActiveLayers() is None
 
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, rowIdxList, expected_dataframe', getLayerDataframe_with_rowlist_testcases)
+def test_getLayerDataframe_with_rowlist(make_napari_viewer, points, face_color, layer_name, symbol, rowIdxList, expected_dataframe):
+    """
+    check getLayerDataFrame giving it a row index and checking if we got the desired dataframe
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    dataframe = my_widget.getLayerDataFrame(rowList=rowIdxList)
+
+    # Assert
+
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, expected_dataframe', getLayerDataframe_without_rowlist_testcases)
+def test_getLayerDataframe_without_rowlist(make_napari_viewer, points, face_color, layer_name, symbol, expected_dataframe):
+    """
+    check getLayerDataFrame giving it a row index and checking if we got the desired dataframe
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    dataframe = my_widget.getLayerDataFrame(rowList=None)
+
+    # Assert
+
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, expected_dataframe', getLayerDataframe_without_rowlist_testcases)
+def test_on_refresh_button(make_napari_viewer, points, face_color, layer_name, symbol, expected_dataframe):
+    """
+    on_refresh_button should set the data model
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer)
+
+    # Act
+    my_widget.on_refresh_button()
+
+    # Assert
+    dataframe = my_widget.myTable2.myModel.myGetData()
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+# @pytest.mark.parametrize('points, face_color, layer_name, symbol, columnType, expected_dataframe', hideColumns_testcases)
+# def test_hideColumns(make_napari_viewer, points, face_color, layer_name, symbol, columnType, expected_dataframe):
+#     """
+#     on_refresh_button should set the data model
+#     """
+#     # Arrange
+#     viewer = make_napari_viewer()
+#     image_layer = viewer.add_image(np.random.random((100, 100)))
+#     axis = 0
+#     zSlice = 15
+#     viewer.dims.set_point(axis, zSlice)
+#     points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+#     my_widget = LayerTablePlugin(viewer)
+
+#     # Act
+#     my_widget.hideColumns(columnType)
+#     dataframe = my_widget.getLayerDataFrame(rowList=None)
+
+#     # Assert
+#     d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+#     dataframe = dataframe.astype(d)
+#     print(dataframe)
+#     pd.testing.assert_frame_equal(dataframe, expected_dataframe)
+    
+
 def test_LayerTablePlugin_updates_layer_name_on_user_rename_of_layer(make_napari_viewer):
     """
     Check if the slot_user_edit_name method is called to update the layer name in case of layer rename
@@ -204,7 +408,7 @@ def test_LayerTablePlugin_updates_layer_name_on_user_rename_of_layer(make_napari
 
 def test_LayerTablePlugin_updates_layer_data_when_new_point_is_added(make_napari_viewer):
     """
-    Check if the slot_user_edit_name method is called to update the layer name in case of layer rename
+    Check if the slot_user_edit_data method is called to update the layer data when point is added
     """
     # Arrange
     viewer = make_napari_viewer()
@@ -231,7 +435,7 @@ def test_LayerTablePlugin_updates_layer_data_when_new_point_is_added(make_napari
 
 def test_LayerTablePlugin_updates_layer_data_when_point_is_deleted(make_napari_viewer):
     """
-    Check if the slot_user_edit_name method is called to update the layer name in case of layer rename
+    Check if the slot_user_edit_data method is called to update the layer data when point is deleted
     """
     # Arrange
     viewer = make_napari_viewer()
@@ -257,3 +461,42 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_deleted(make_napari_v
     assert initial_points_count == len(points)
     assert updated_points_count == len(new_points_data)
     assert updated_points_count == initial_points_count - 1
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol, new_point_coordinates, expected_dataframe', slot_user_move_data_testcases)
+def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_viewer, points, face_color, layer_name, symbol, new_point_coordinates, expected_dataframe):
+    """
+    Check if the slot_user_edit_data method is called to modify the layer data when point is moved
+    """
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+    
+    # Act: select and delete the first point in the points layer ([zSlice, 10, 10])
+    point_index = 0
+    points_layer.selected_data = {point_index}
+    print(f"row data before: {points_layer.data[0]}")
+    points_layer.data[0] = new_point_coordinates
+    print(f"row data after: {points_layer.data[0]}")
+    sleep(1)
+    event = MockEvent()
+    event.source = points_layer
+    my_widget.slot_user_edit_data(event)
+    dataframe = my_widget.myTable2.myModel.myGetData()
+
+    print(f"moved data: {dataframe}")
+
+    # Assert: checking if the table data was updated
+    d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+    dataframe = dataframe.astype(d)
+    pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+# @pytest.mark.parametrize('points, face_color, layer_name, symbol, new_face_color, expected_dataframe', slot_user_move_data_testcases)
+# def test_LayerTable_Plugin_updates_face_color_when_face_color_is_changed(make_napari_viewer, points, face_color, layer_name, symbol, new_face_color, expected_dataframe):
+
+    
