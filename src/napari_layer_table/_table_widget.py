@@ -84,6 +84,13 @@ class myTableView(QtWidgets.QTableView):
 			mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
 			[self.selectionModel().select(i, mode) for i in visualRows]
 
+			# scroll so first row in rows is visible
+			# TODO (cudmore) does not work if list is filtered
+			column = 0
+			row = list(rows)[0]
+			index = self.model().index(row, column)
+			self.scrollTo(index)
+
 		else:
 			#print('  CLEARING SELECTION')
 			self.clearSelection()

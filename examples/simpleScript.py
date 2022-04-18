@@ -34,7 +34,9 @@ points = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice
 
 # create a points layer from our points
 pointsLayer = viewer.add_points(points,
-						size=30, face_color='magenta', name='magenta circles')
+						size=30, 
+						face_color='magenta', 
+						name='magenta circles')
 print(type(pointsLayer))
 
 # add some properties to the points layer (will be displayed in the table)
@@ -49,7 +51,9 @@ pointsLayer.mode = 'select'
 # make a second points layer
 points2 = np.array([[zSlice, 75, 55], [zSlice, 85, 65], [zSlice, 95, 75]])
 pointsLayer2 = viewer.add_points(points2,
-						size=30, face_color='blue', 
+						size=30,
+						face_color='blue', 
+						shown=True,
 						#edge_color='magenta',
 						#edge_width_is_relative=False,
 						#edge_width=10,
