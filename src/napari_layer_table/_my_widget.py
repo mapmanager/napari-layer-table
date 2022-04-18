@@ -113,6 +113,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self._shift_click_for_new = False  # Toggle new points on shift+click
 		#self._showFaceColor = True
 		
+		# If True, will not switch to different layer
+		self._onlyOneLayer = oneLayer is not None
+
 		#self.myTable = None
 		self.InitGui()  # order matters, connectLayer() is accessing table
 						# but table has to first be created
@@ -153,16 +156,17 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		controls_hbox_layout.addWidget(refreshButton)
 
 		# bring layer to front in napari viewer
-		bringToFrontButton = QtWidgets.QPushButton('btf')
-		bringToFrontButton.setToolTip('Bring layer to front')
-		# want to set an icon, temporary use built in is SP_TitleBarNormalButton
-		#TODO (cudmore) install our own .svg icons, need to use .qss file
-		style = self.style()
-		bringToFrontButton.setIcon(
+		if self._onlyOneLayer:
+			bringToFrontButton = QtWidgets.QPushButton('btf')
+			bringToFrontButton.setToolTip('Bring layer to front')
+			# want to set an icon, temporary use built in is SP_TitleBarNormalButton
+			#TODO (cudmore) install our own .svg icons, need to use .qss file
+			style = self.style()
+			bringToFrontButton.setIcon(
 						style.standardIcon(QtWidgets.QStyle.SP_FileIcon))
 
-		bringToFrontButton.clicked.connect(self.on_bring_to_front_button)
-		controls_hbox_layout.addWidget(bringToFrontButton)
+			bringToFrontButton.clicked.connect(self.on_bring_to_front_button)
+			controls_hbox_layout.addWidget(bringToFrontButton)
 
 		# the current layer name
 		self.layerNameLabel = QtWidgets.QLabel('')
