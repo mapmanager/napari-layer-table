@@ -120,9 +120,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		self.InitGui()  # order matters, connectLayer() is accessing table
 						# but table has to first be created
 
-		# If True, will not switch to different layer
-		self._onlyOneLayer = oneLayer is not None
-
 		if oneLayer is not None:
 			self.connectLayer(oneLayer)
 		else:
