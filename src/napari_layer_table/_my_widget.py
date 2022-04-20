@@ -39,6 +39,7 @@ from napari_layer_table._my_logger import logger
 from napari_layer_table._table_widget import myTableView
 from napari_layer_table._data_model import pandasModel
 from typing import List, Set
+import warnings
 
 #
 # see here for searching unicode symbols
@@ -98,7 +99,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 			takes a string and returns ???
 		"""
 		super().__init__()
-		
+
+		warnings.filterwarnings(
+			action='ignore',
+			category=FutureWarning
+		)
 		self._viewer = napari_viewer
 		
 		self._layer = None  # current selected layer
