@@ -722,4 +722,8 @@ def test_snapToPoint(make_napari_viewer, points, selected_row, is_alt, expected_
 
     # Assert
     if is_alt:
-        assert my_widget._viewer.camera.center == expected_center
+        center = my_widget._viewer.camera.center
+        # check if the viewer center is approximately within 20% error of where we expect it to be
+        assert (int(center[0]) - int(expected_center[0])) <= 0.2 * int(expected_center[0])
+        assert (int(center[1]) - int(expected_center[1])) <= 0.2 * int(expected_center[1])
+        assert (int(center[2]) - int(expected_center[2])) <= 0.2 * int(expected_center[2])
