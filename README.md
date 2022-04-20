@@ -53,6 +53,8 @@ You can use the napari-layer-table plugin to display points layer as a table.
     - Point coordinates (x,y,z)
     - If the layer has properties, they are also shown as columns
 
+![Using the Plugin](plugin-2.gif)
+
 ## Plugin Features
 
 - Bi-directional selection between layer and table.
