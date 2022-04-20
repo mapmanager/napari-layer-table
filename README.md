@@ -1,7 +1,10 @@
 # napari-layer-table
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PyPI version](https://badge.fury.io/py/napari-layer-table.svg)](https://badge.fury.io/py/napari-layer-table)
+[![Napari Hub](https://img.shields.io/badge/napari%20hub-available-mint.svg)](https://www.napari-hub.org/plugins/napari-layer-table)
 [![Python](https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![OS](https://img.shields.io/badge/OS-Linux|Windows|macOS-blue.svg)]()
 [![tests](https://github.com/mapmanager/napari-layer-table/workflows/Tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
 [![codecov](https://codecov.io/gh/mapmanager/napari-layer-table/branch/main/graph/badge.svg?token=8S8EFI8NBC)](https://codecov.io/gh/mapmanager/napari-layer-table)
 <!-- [![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table) -->
@@ -20,14 +23,6 @@ https://github.com/napari/cookiecutter-napari-plugin#getting-started
 and review the napari docs for plugin developers:
 https://napari.org/plugins/stable/index.html
 -->
-
-## Supported Platforms
-
-|         | Python 3.7 | Python 3.8 | Python 3.9 | Python 3.10
-| ------- | ---------- | ---------- | ---------- | ----------- |
-| Linux   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
-| macOS   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
-| Windows | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
 
 ## Installation
 
@@ -53,7 +48,7 @@ You can use the napari-layer-table plugin to display points layer as a table.
     - Point coordinates (x,y,z)
     - If the layer has properties, they are also shown as columns
 
-![Using the Plugin](plugin-2.gif)
+![](plugin-2.gif)
 
 ## Plugin Features
 
