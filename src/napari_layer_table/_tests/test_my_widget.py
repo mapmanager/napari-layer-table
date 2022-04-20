@@ -55,7 +55,12 @@ slot_edit_symbol_testcases = [
 
 slot_edit_facecolor_testcases = [
     (threeDimPoints, 'red', 'red triangles layer', "+", 0, [0.0, 0.0, 1.0, 1.0], pd.DataFrame(np.array([["✚", 0, 15, 66, 55, [0.0, 0.0, 1.0, 1.0]], ["✚", 1, 15, 65, 60, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 50, 85, 79, [1.0, 0.0, 0.0, 1.0]], ["✚", 3, 20, 90, 68, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "z", "x", "y", "Face Color"])),
-    # (twoDimPoints, 'blue', 'blue triangles layer', "+", 1, [1.0, 0.0, 0.0, 1.0], pd.DataFrame(np.array([["✚", 0, 10, 55, [0.0, 0.0, 1.0, 1.0]], ["✚", 1, 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 10, 75, [0.0, 0.0, 1.0, 1.0]], ["✚", 3, 10, 85, [0.0, 0.0, 1.0, 1.0]]]), columns=["Symbol", "rowIdx", "x", "y", "Face Color"]))
+    (twoDimPoints, 'blue', 'blue triangles layer', "+", 1, [1.0, 0.0, 0.0, 1.0], pd.DataFrame(np.array([["✚", 0, 10, 55, [0.0, 0.0, 1.0, 1.0]], ["✚", 1, 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 10, 75, [0.0, 0.0, 1.0, 1.0]], ["✚", 3, 10, 85, [0.0, 0.0, 1.0, 1.0]]]), columns=["Symbol", "rowIdx", "x", "y", "Face Color"]))
+]
+
+hide_columns_test_cases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^'),
+    (twoDimPoints, 'red', 'red triangles layer', '^')
 ]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
@@ -530,3 +535,110 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_vie
 #     # print(dataframe['Face Color'])
 
 #     pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_hideCoordinatesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.hideColumns('coordinates')
+
+    # Assert
+    assert 'z' in my_widget.myTable2.hiddenColumnSet
+    assert 'y' in my_widget.myTable2.hiddenColumnSet
+    assert 'x' in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_unhideCoordinatesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+    my_widget.hideColumns('coordinates')
+
+    # Act
+    my_widget.hideColumns('coordinates', hidden=False)
+
+    # Assert
+    assert 'z' not in my_widget.myTable2.hiddenColumnSet
+    assert 'y' not in my_widget.myTable2.hiddenColumnSet
+    assert 'x' not in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_hidePropertiesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    points_layer.properties = {
+        'Prop 1': ['a', 'b', 'c', 'd'],
+        'Prop 2': [True, False, True, False],
+    }
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.hideColumns('properties')
+
+    # Assert
+    for key in points_layer.properties.keys():
+        assert key in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_unhidePropertiesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    points_layer.properties = {
+        'Prop 1': ['a', 'b', 'c', 'd'],
+        'Prop 2': [True, False, True, False],
+    }
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+    my_widget.hideColumns('properties')
+
+    # Act
+    my_widget.hideColumns('properties', hidden=False)
+
+    # Assert
+    for key in points_layer.properties.keys():
+        assert key not in my_widget.myTable2.hiddenColumnSet
+
+def test_hideColumn_rejects_incorrect_column_type(make_napari_viewer, caplog):
+    """
+    Check if the connectLayer method does not accept an image layer and logs a message
+    """
+    # Arrange
+    LOGGER = logging.getLogger(__name__)
+    caplog.set_level(logging.WARNING)
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(image_layer)
+
+    # Act
+    columnType = 'incorrect'
+    my_widget.hideColumns(columnType)
+
+    # Assert
+    assert f'did not understand columnType:{columnType}' in caplog.text
