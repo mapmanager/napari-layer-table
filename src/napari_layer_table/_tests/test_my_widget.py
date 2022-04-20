@@ -10,11 +10,15 @@ import pytest
 from napari_layer_table import LayerTablePlugin
 import numpy as np
 import pandas as pd
-import sys
+from qtpy import QtCore
 import logging
 
 class MockEvent(object):
-    pass
+    def __init__(self, keyPressed=None):
+        self._keyPressed = keyPressed
+
+    def key(self):
+        return self._keyPressed
 
 threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]]) # napari treates it as z: 15, y: 55, x:66 -> in our table its z: 15, x: 66, y: 55
 twoDimPoints = np.array([[10, 55], [10, 65], [10, 75], [10, 85]])
@@ -64,6 +68,21 @@ hide_columns_test_cases = [
 ]
 
 on_mouse_drag_test_cases = [(threeDimPoints), (twoDimPoints)]
+
+keyPressEvent_test_cases = [
+    (threeDimPoints, {}, QtCore.Qt.Key_Enter),
+    (threeDimPoints, {}, QtCore.Qt.Key_Delete),
+    (threeDimPoints, {}, QtCore.Qt.Key_Backspace),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Enter),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Delete),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Backspace),
+    (twoDimPoints, {}, QtCore.Qt.Key_Enter),
+    (twoDimPoints, {}, QtCore.Qt.Key_Delete),
+    (twoDimPoints, {}, QtCore.Qt.Key_Backspace),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Enter),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Delete),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Backspace),
+]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
     """
@@ -664,5 +683,21 @@ def test_on_mouse_drag(make_napari_viewer, points):
     my_widget.on_mouse_drag(points_layer, event)
 
     # Assert
-    print(my_widget._layer.data)
     assert event.position in my_widget._layer.data
+
+@pytest.mark.parametrize('points, selected_data, keyPressed', keyPressEvent_test_cases)
+def test_on_mouse_drag(make_napari_viewer, points, selected_data, keyPressed):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+    event = MockEvent(keyPressed)
+
+    # Act
+    points_layer.selected_data = selected_data
+    my_widget.keyPressEvent(event)
+
+    # Assert
+    if len(selected_data) > 0 and keyPressed in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
+        assert len(my_widget._layer.data) == len(points) - 1
