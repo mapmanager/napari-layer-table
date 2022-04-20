@@ -75,25 +75,27 @@ class myTableView(QtWidgets.QTableView):
 		# to stop event recursion
 		self.blockUpdate = True
 		
-		self.selectionModel().clear()
+		selectionModel = self.selectionModel()
+		if selectionModel:
+			selectionModel.clear()
 		
-		if rows:
-			indexes = [self.myModel.index(r, 0) for r in rows]  # [QModelIndex]
-			visualRows = [self.proxy.mapFromSource(modelIndex) for modelIndex in indexes]
+			if rows:
+				indexes = [self.myModel.index(r, 0) for r in rows]  # [QModelIndex]
+				visualRows = [self.proxy.mapFromSource(modelIndex) for modelIndex in indexes]
 
-			mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
-			[self.selectionModel().select(i, mode) for i in visualRows]
+				mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
+				[self.selectionModel().select(i, mode) for i in visualRows]
 
-			# scroll so first row in rows is visible
-			# TODO (cudmore) does not work if list is filtered
-			column = 0
-			row = list(rows)[0]
-			index = self.model().index(row, column)
-			self.scrollTo(index)
+				# scroll so first row in rows is visible
+				# TODO (cudmore) does not work if list is filtered
+				column = 0
+				row = list(rows)[0]
+				index = self.model().index(row, column)
+				self.scrollTo(index)
 
-		else:
-			#print('  CLEARING SELECTION')
-			self.clearSelection()
+			else:
+				#print('  CLEARING SELECTION')
+				self.clearSelection()
 
 	def mySetModel(self, model : pd.DataFrame):
 		""" Set the model. Needed so we can show/hide columns
