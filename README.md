@@ -41,6 +41,35 @@ To install latest development version :
 
     pip install git+https://github.com/mapmanager/napari-layer-table.git
 
+## Using the Plugin
+
+You can use the napari-layer-table plugin to display points layer as a table.
+
+- Open a napari viewer with a Points layer
+- Add the plugin to the napari viewer from Plugins menu -> Add dock widget -> napari-layer-table: Points Table
+- The selected layer is displayed in the table.
+- The table has columns for:
+    - Point symbol with face color
+    - Point coordinates (x,y,z)
+    - If the layer has properties, they are also shown as columns
+
+## Plugin Features
+
+- Bi-directional selection between layer and table.
+- Bi-directional deletion between layer and table.
+- Points added to the layer are added to the table.
+- Points moved in the layer are updated in the table.
+- Multiple points selected in the layer are also selected in the table
+- Changes to face color and symbol in the layer are updated in the table.
+- Ability to sort individual columns from low to high or high to low
+- `Refresh` button to manually refresh the table data
+- `btf` button to manually bring the layer whose table data is being shown to front
+
+Right-click for context menu to:
+
+- Toggle table columns on/off.
+- Toggle shift+click to add a point to the layer (no need to switch viewer mode)
+- Copy table to clipboard
 
 ## Contributing
 
