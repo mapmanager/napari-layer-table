@@ -810,7 +810,6 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	
 	def slot_user_edit_face_color(self):
 		"""Respond to user selecting face color with color picker.
-
 			Notes:
 				- Unlike other event callbacks, this has no parameters.
 				- Unlike others, self._layer is not updated
@@ -824,7 +823,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# user point selection
 		selected_data = self._layer.selected_data
 		selectedDataList = list(selected_data)
-		if not selectedDataList:
+		if not selected_data:
 			return
 		
 		rgbaOfSelection = self._layer._face.current_color  # rgba
@@ -836,21 +835,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		myTableData = self.getLayerDataFrame(rowList=selectedDataList)
 		
 		# set color of selectedDataList rows
-		# for idx, selectedData in enumerate(selectedDataList):
-		# 	print(f"selected data: {selectedData}")
-		# 	myTableData.at[idx, 'Face Color'] = rgbaOfSelection
-		
-		# self.myTable2.myModel.mySetRow(selectedDataList, myTableData)
-		# print("done")
-
-		for selected_row_idx in selectedDataList:
-			print(f"selected row idx: {selected_row_idx}")
-			row = myTableData.iloc[selected_row_idx]
-			print(f"old_color: {row['Face Color']}")
-			row['Face Color'] = rgbaOfSelection
+		for idx, selectedData in enumerate(selectedDataList):
+			myTableData.at[idx, 'Face Color'] = rgbaOfSelection
 		
 		self.myTable2.myModel.mySetRow(selectedDataList, myTableData)
-		print("done")
 
 	def _printEvent(self, event):
 		"""
@@ -934,5 +922,5 @@ def run():
 
 	napari.run()
 
-if __name__ == '__main__':
-	run()
+# if __name__ == '__main__':
+# 	run()
