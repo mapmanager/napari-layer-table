@@ -84,6 +84,13 @@ keyPressEvent_test_cases = [
     (twoDimPoints, {0}, QtCore.Qt.Key_Backspace),
 ]
 
+snapToPoint_test_cases = [
+    (threeDimPoints, 0, False, (15, 55, 66)),
+    (threeDimPoints, 0, True, (15, 55, 66)),
+    (twoDimPoints, 0, False, (0, 10, 55)),
+    (twoDimPoints, 0, True, (0, 10, 55)),
+]
+
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
     """
 	Verify the creation of a LayerTable widget initialized with an napari viewer with no layers
@@ -701,3 +708,18 @@ def test_on_mouse_drag(make_napari_viewer, points, selected_data, keyPressed):
     # Assert
     if len(selected_data) > 0 and keyPressed in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
         assert len(my_widget._layer.data) == len(points) - 1
+
+@pytest.mark.parametrize('points, selected_row, is_alt, expected_center', snapToPoint_test_cases)
+def test_snapToPoint(make_napari_viewer, points, selected_row, is_alt, expected_center):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.snapToPoint(selectedRow=selected_row, isAlt=is_alt)
+
+    # Assert
+    if is_alt:
+        assert my_widget._viewer.camera.center == expected_center
