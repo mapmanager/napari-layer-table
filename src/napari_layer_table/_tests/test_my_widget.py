@@ -63,6 +63,8 @@ hide_columns_test_cases = [
     (twoDimPoints, 'red', 'red triangles layer', '^')
 ]
 
+on_mouse_drag_test_cases = [(threeDimPoints), (twoDimPoints)]
+
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
     """
 	Verify the creation of a LayerTable widget initialized with an napari viewer with no layers
@@ -642,3 +644,25 @@ def test_hideColumn_rejects_incorrect_column_type(make_napari_viewer, caplog):
 
     # Assert
     assert f'did not understand columnType:{columnType}' in caplog.text
+
+@pytest.mark.parametrize('points', on_mouse_drag_test_cases)
+def test_on_mouse_drag(make_napari_viewer, points):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+    event = MockEvent()
+    event.modifiers = ['Shift']
+
+    if points.shape[1] == 3:
+        event.position = [15,50,50]
+    else:
+        event.position = [50,50]
+
+    # Act
+    my_widget.on_mouse_drag(points_layer, event)
+
+    # Assert
+    print(my_widget._layer.data)
+    assert event.position in my_widget._layer.data
