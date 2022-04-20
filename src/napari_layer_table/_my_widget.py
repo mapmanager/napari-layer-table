@@ -824,12 +824,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 		# user point selection
 		selected_data = self._layer.selected_data
 		selectedDataList = list(selected_data)
-		if not selected_data:
+		if not selectedDataList:
 			return
 		
 		rgbaOfSelection = self._layer._face.current_color  # rgba
 		#hexColorOfSelection = self._layer.current_face_color  # hex
-		print(f"rgbaOfSelection: {rgbaOfSelection}")
 
 		# TODO: we need new function just to set the color of symbol in table		
 
