@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/napari-layer-table.svg)](https://badge.fury.io/py/napari-layer-table)
-[![Napari Hub](https://img.shields.io/badge/napari%20hub-available-mint.svg)](https://www.napari-hub.org/plugins/napari-layer-table)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table)
 [![Python](https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
 [![OS](https://img.shields.io/badge/OS-Linux|Windows|macOS-blue.svg)]()
 [![tests](https://github.com/mapmanager/napari-layer-table/workflows/Tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
