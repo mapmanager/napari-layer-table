@@ -10,11 +10,15 @@ import pytest
 from napari_layer_table import LayerTablePlugin
 import numpy as np
 import pandas as pd
-import sys
+from qtpy import QtCore
 import logging
 
 class MockEvent(object):
-    pass
+    def __init__(self, keyPressed=None):
+        self._keyPressed = keyPressed
+
+    def key(self):
+        return self._keyPressed
 
 threeDimPoints = np.array([[15, 55, 66], [15, 60, 65], [50, 79, 85], [20, 68, 90]]) # napari treates it as z: 15, y: 55, x:66 -> in our table its z: 15, x: 66, y: 55
 twoDimPoints = np.array([[10, 55], [10, 65], [10, 75], [10, 85]])
@@ -51,6 +55,40 @@ slot_insert_layer_testcases = [
 slot_edit_symbol_testcases = [
     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 0, 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["✚", 1, 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["✚", 2, 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["✚", 3, 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "z", "x", "y", "Face Color"])),
     (twoDimPoints, 'red', 'red triangles layer', '^', "+", pd.DataFrame(np.array([["✚", 0, 10, 55, [1.0, 0.0, 0.0, 1.0]], ["✚", 1, 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 10, 75, [1.0, 0.0, 0.0, 1.0]], ["✚", 3, 10, 85, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "x", "y", "Face Color"]))
+]
+
+slot_edit_facecolor_testcases = [
+    (threeDimPoints, 'red', 'red triangles layer', "+", 0, [0.0, 0.0, 1.0, 1.0], pd.DataFrame(np.array([["✚", 0, 15, 66, 55, [0.0, 0.0, 1.0, 1.0]], ["✚", 1, 15, 65, 60, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 50, 85, 79, [1.0, 0.0, 0.0, 1.0]], ["✚", 3, 20, 90, 68, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "z", "x", "y", "Face Color"])),
+    (twoDimPoints, 'blue', 'blue triangles layer', "+", 1, [1.0, 0.0, 0.0, 1.0], pd.DataFrame(np.array([["✚", 0, 10, 55, [0.0, 0.0, 1.0, 1.0]], ["✚", 1, 10, 65, [1.0, 0.0, 0.0, 1.0]], ["✚", 2, 10, 75, [0.0, 0.0, 1.0, 1.0]], ["✚", 3, 10, 85, [0.0, 0.0, 1.0, 1.0]]]), columns=["Symbol", "rowIdx", "x", "y", "Face Color"]))
+]
+
+hide_columns_test_cases = [
+    (threeDimPoints, 'yellow', 'yellow triangles layer', '^'),
+    (twoDimPoints, 'red', 'red triangles layer', '^')
+]
+
+on_mouse_drag_test_cases = [(threeDimPoints), (twoDimPoints)]
+
+keyPressEvent_test_cases = [
+    (threeDimPoints, {}, QtCore.Qt.Key_Enter),
+    (threeDimPoints, {}, QtCore.Qt.Key_Delete),
+    (threeDimPoints, {}, QtCore.Qt.Key_Backspace),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Enter),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Delete),
+    (threeDimPoints, {0}, QtCore.Qt.Key_Backspace),
+    (twoDimPoints, {}, QtCore.Qt.Key_Enter),
+    (twoDimPoints, {}, QtCore.Qt.Key_Delete),
+    (twoDimPoints, {}, QtCore.Qt.Key_Backspace),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Enter),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Delete),
+    (twoDimPoints, {0}, QtCore.Qt.Key_Backspace),
+]
+
+snapToPoint_test_cases = [
+    (threeDimPoints, 0, False, (15, 55, 66)),
+    (threeDimPoints, 0, True, (15, 55, 66)),
+    (twoDimPoints, 0, False, (0, 10, 55)),
+    (twoDimPoints, 0, True, (0, 10, 55)),
 ]
 
 def test_initialize_layer_table_widget_is_successful(make_napari_viewer):
@@ -496,7 +534,196 @@ def test_LayerTablePlugin_updates_layer_data_when_point_is_moved(make_napari_vie
     dataframe = dataframe.astype(d)
     pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
 
-# @pytest.mark.parametrize('points, face_color, layer_name, symbol, new_face_color, expected_dataframe', slot_user_move_data_testcases)
-# def test_LayerTable_Plugin_updates_face_color_when_face_color_is_changed(make_napari_viewer, points, face_color, layer_name, symbol, new_face_color, expected_dataframe):
-
+# @pytest.mark.parametrize('points, face_color, layer_name, symbol, selected_row_index, new_face_color, expected_dataframe', slot_edit_facecolor_testcases)
+# def test_LayerTable_Plugin_updates_face_color_when_face_color_is_changed(make_napari_viewer, points, face_color, layer_name, symbol, selected_row_index, new_face_color, expected_dataframe):
+#     """
+#     Check if the slot_user_edit_face_color method is called to change the layer data face color
+#     """
+#      # Arrange
+#     viewer = make_napari_viewer()
+#     image_layer = viewer.add_image(np.random.random((100, 100)))
+#     axis = 0
+#     zSlice = 15
+#     viewer.dims.set_point(axis, zSlice)
+#     points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+#     my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+#     my_widget.connectLayer(points_layer)
     
+#     # Act
+#     points_layer.selected_data = {selected_row_index}
+#     print(f"new_face_color: {new_face_color}")
+#     points_layer._face.current_color = new_face_color
+#     # my_widget.slot_user_edit_face_color()
+
+#     # Assert
+#     dataframe = my_widget.myTable2.myModel.myGetData()
+#     # d = dict.fromkeys(dataframe.select_dtypes(np.int64).columns, np.object0)
+#     # dataframe = dataframe.astype(d)
+
+#     # print(dataframe['Face Color'])
+
+#     pd.testing.assert_frame_equal(dataframe, expected_dataframe, check_dtype=False)
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_hideCoordinatesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.hideColumns('coordinates')
+
+    # Assert
+    assert 'z' in my_widget.myTable2.hiddenColumnSet
+    assert 'y' in my_widget.myTable2.hiddenColumnSet
+    assert 'x' in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_unhideCoordinatesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+    my_widget.hideColumns('coordinates')
+
+    # Act
+    my_widget.hideColumns('coordinates', hidden=False)
+
+    # Assert
+    assert 'z' not in my_widget.myTable2.hiddenColumnSet
+    assert 'y' not in my_widget.myTable2.hiddenColumnSet
+    assert 'x' not in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_hidePropertiesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    points_layer.properties = {
+        'Prop 1': ['a', 'b', 'c', 'd'],
+        'Prop 2': [True, False, True, False],
+    }
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.hideColumns('properties')
+
+    # Assert
+    for key in points_layer.properties.keys():
+        assert key in my_widget.myTable2.hiddenColumnSet
+
+@pytest.mark.parametrize('points, face_color, layer_name, symbol', hide_columns_test_cases)
+def test_unhidePropertiesColumns(make_napari_viewer, points, face_color, layer_name, symbol):
+    # Arrange
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    axis = 0
+    zSlice = 15
+    viewer.dims.set_point(axis, zSlice)
+    points_layer = viewer.add_points(points, size=3, face_color=face_color, name=layer_name, symbol=symbol)
+    points_layer.properties = {
+        'Prop 1': ['a', 'b', 'c', 'd'],
+        'Prop 2': [True, False, True, False],
+    }
+    my_widget = LayerTablePlugin(viewer, oneLayer=points_layer)
+    my_widget.connectLayer(points_layer)
+    my_widget.hideColumns('properties')
+
+    # Act
+    my_widget.hideColumns('properties', hidden=False)
+
+    # Assert
+    for key in points_layer.properties.keys():
+        assert key not in my_widget.myTable2.hiddenColumnSet
+
+def test_hideColumn_rejects_incorrect_column_type(make_napari_viewer, caplog):
+    """
+    Check if the connectLayer method does not accept an image layer and logs a message
+    """
+    # Arrange
+    LOGGER = logging.getLogger(__name__)
+    caplog.set_level(logging.WARNING)
+    viewer = make_napari_viewer()
+    image_layer = viewer.add_image(np.random.random((100, 100)))
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(image_layer)
+
+    # Act
+    columnType = 'incorrect'
+    my_widget.hideColumns(columnType)
+
+    # Assert
+    assert f'did not understand columnType:{columnType}' in caplog.text
+
+@pytest.mark.parametrize('points', on_mouse_drag_test_cases)
+def test_on_mouse_drag(make_napari_viewer, points):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+    event = MockEvent()
+    event.modifiers = ['Shift']
+
+    if points.shape[1] == 3:
+        event.position = [15,50,50]
+    else:
+        event.position = [50,50]
+
+    # Act
+    my_widget.on_mouse_drag(points_layer, event)
+
+    # Assert
+    assert event.position in my_widget._layer.data
+
+@pytest.mark.parametrize('points, selected_data, keyPressed', keyPressEvent_test_cases)
+def test_on_mouse_drag(make_napari_viewer, points, selected_data, keyPressed):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+    event = MockEvent(keyPressed)
+
+    # Act
+    points_layer.selected_data = selected_data
+    my_widget.keyPressEvent(event)
+
+    # Assert
+    if len(selected_data) > 0 and keyPressed in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
+        assert len(my_widget._layer.data) == len(points) - 1
+
+@pytest.mark.parametrize('points, selected_row, is_alt, expected_center', snapToPoint_test_cases)
+def test_snapToPoint(make_napari_viewer, points, selected_row, is_alt, expected_center):
+    # Arrange
+    viewer = make_napari_viewer()
+    points_layer = viewer.add_points(points)
+    my_widget = LayerTablePlugin(viewer)
+    my_widget.connectLayer(points_layer)
+
+    # Act
+    my_widget.snapToPoint(selectedRow=selected_row, isAlt=is_alt)
+
+    # Assert
+    if is_alt:
+        center = my_widget._viewer.camera.center
+        # check if the viewer center is approximately within 20% error of where we expect it to be
+        assert (int(center[0]) - int(expected_center[0])) <= 0.2 * int(expected_center[0])
+        assert (int(center[1]) - int(expected_center[1])) <= 0.2 * int(expected_center[1])
+        assert (int(center[2]) - int(expected_center[2])) <= 0.2 * int(expected_center[2])
