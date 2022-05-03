@@ -79,8 +79,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
 	signalDataChanged = QtCore.Signal(object, object)
 	"""Emit signal to the external applictaion using this plugin when user adds/deletes/moves points.
 	   Emits:
-	   	1. event type which can be "add", "move" or "delete" 
-		2. pandas dataframe for the edited row
+	   	(str) event type which can be "add", "move" or "delete" 
+		(pd.DataFrame) for the edited row
 	"""
 
 	def __init__(self, napari_viewer : napari.Viewer,
