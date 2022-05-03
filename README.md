@@ -1,7 +1,10 @@
 # napari-layer-table
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PyPI version](https://badge.fury.io/py/napari-layer-table.svg)](https://badge.fury.io/py/napari-layer-table)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-layer-table)](https://napari-hub.org/plugins/napari-layer-table)
 [![Python](https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![OS](https://img.shields.io/badge/OS-Linux|Windows|macOS-blue.svg)]()
 [![tests](https://github.com/mapmanager/napari-layer-table/workflows/Tests/badge.svg)](https://github.com/mapmanager/napari-layer-table/actions)
 [![codecov](https://codecov.io/gh/mapmanager/napari-layer-table/branch/main/graph/badge.svg?token=8S8EFI8NBC)](https://codecov.io/gh/mapmanager/napari-layer-table)
 <!-- [![PyPI](https://img.shields.io/pypi/v/napari-layer-table.svg?color=green)](https://pypi.org/project/napari-layer-table) -->
@@ -21,14 +24,6 @@ and review the napari docs for plugin developers:
 https://napari.org/plugins/stable/index.html
 -->
 
-## Supported Platforms
-
-|         | Python 3.7 | Python 3.8 | Python 3.9 | Python 3.10
-| ------- | ---------- | ---------- | ---------- | ----------- |
-| Linux   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
-| macOS   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
-| Windows | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
-
 ## Installation
 
 You can install `napari-layer-table` via [pip]:
@@ -41,6 +36,37 @@ To install latest development version :
 
     pip install git+https://github.com/mapmanager/napari-layer-table.git
 
+## Using the Plugin
+
+You can use the napari-layer-table plugin to display points layer as a table.
+
+- Open a napari viewer with a Points layer
+- Add the plugin to the napari viewer from Plugins menu -> Add dock widget -> napari-layer-table: Points Table
+- The selected layer is displayed in the table.
+- The table has columns for:
+    - Point symbol with face color
+    - Point coordinates (x,y,z)
+    - If the layer has properties, they are also shown as columns
+
+![](plugin-2.gif)
+
+## Plugin Features
+
+- Bi-directional selection between layer and table.
+- Bi-directional deletion between layer and table.
+- Points added to the layer are added to the table.
+- Points moved in the layer are updated in the table.
+- Multiple points selected in the layer are also selected in the table
+- Changes to face color and symbol in the layer are updated in the table.
+- Ability to sort individual columns from low to high or high to low
+- `Refresh` button to manually refresh the table data
+- `btf` button to manually bring the layer whose table data is being shown to front
+
+Right-click for context menu to:
+
+- Toggle table columns on/off.
+- Toggle shift+click to add a point to the layer (no need to switch viewer mode)
+- Copy table to clipboard
 
 ## Contributing
 

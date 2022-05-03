@@ -73,10 +73,10 @@ class pandasModel(QtCore.QAbstractTableModel):
 					# try:
 					#  _color = (np.array(color.getRgb()) / 255).astype(np.float32)
 					try:
-						r = face_color[0] * 255
-						g = face_color[1] * 255
-						b = face_color[2] * 255
-						alpha = face_color[3] * 255
+						r = int(face_color[0] * 255)
+						g = int(face_color[1] * 255)
+						b = int(face_color[2] * 255)
+						alpha = int(face_color[3] * 255)
 						theColor = QtCore.QVariant(QtGui.QColor(r, g, b, alpha))
 						return theColor
 					except (IndexError) as e:
