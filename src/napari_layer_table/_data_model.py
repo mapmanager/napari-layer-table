@@ -245,7 +245,10 @@ class pandasModel(QtCore.QAbstractTableModel):
 		logger.info(f'rowList:{rowList}')
 		
 		for dfIdx, rowIdx in enumerate(rowList):
-			oneRow = df.loc[dfIdx]
+			# on switching to v2, was giving error
+            # our df has row indices matching the changed rows (same as rowList)
+            #oneRow = df.loc[dfIdx]
+			oneRow = df.iloc[dfIdx]
 			
 			#IndexError: iloc cannot enlarge its target object
 			self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
