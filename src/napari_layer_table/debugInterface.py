@@ -7,6 +7,7 @@ import numpy as np
 
 import napari
 
+from napari_layer_table import LayerTablePlugin
 from napari_layer_table._my_logger import logger
 
 def slot_external_data_changed(action, rows, data, properties):
@@ -59,7 +60,7 @@ def myMakeShapesLayer(viewer):
     data = None
     ndim = 3
     name = 'my shapes layer'
-    edge_width = 5
+    edge_width = 2
     edge_color = 'coral'
     face_color = 'royalblue'
     shapes_layer = viewer.add_shapes(data,
@@ -85,7 +86,7 @@ def myMakeShapesPathsLayer(viewer):
     data = None
     ndim = 3
     name = 'my shapes path layer'
-    edge_width = 5
+    edge_width = 2
     edge_color = 'coral'
     face_color = 'royalblue'
     shapes_layer = viewer.add_shapes(data,
@@ -190,7 +191,7 @@ def _makeShapesLayer(viewer):
     data = None
     ndim = 3
     name = 'my shapes layer'
-    edge_width = 5
+    edge_width = 2
     edge_color = 'coral'
     face_color = 'royalblue'
     shapes_layer = viewer.add_shapes(data,
@@ -260,50 +261,19 @@ def run():
     viewer = napari.Viewer()
 
     # points
-    #points_layer = _makePointsLayer(viewer)
-    #runPlugin(viewer, points_layer)
+    points_layer = _makePointsLayer(viewer)
+    runPlugin(viewer, points_layer)
 
     # shapes
     shapes_layer = _makeShapesLayer(viewer)
     runPlugin(viewer, shapes_layer)
 
     # label layer
-    #label_layer = _makeLabelLayer(viewer)
-    #runPlugin(viewer, label_layer)
+    label_layer = _makeLabelLayer(viewer)
+    runPlugin(viewer, label_layer)
 
     napari.run()
 
-def old_run():
-    from napari_layer_table import LayerTablePlugin
-    
-    viewer = napari.Viewer()
-    
-    pl = myMakePointsLayer(viewer)
-    sl = myMakeShapesLayer(viewer)
-    spl =  myMakeShapesPathsLayer(viewer)
-    ll = myMakeLabelLayer(viewer)
-
-    # show a pl as a layer-table-plugin
-    '''
-    on_add_point_callback = None
-    pointsTable = LayerTablePlugin(viewer,
-                            oneLayer=pl.getLayer(),
-                            onAddCallback=on_add_point_callback)
-
-    # receive (add, delete, move)
-    pointsTable.signalDataChanged.connect(on_user_edit_points2)
-    '''
-
-    # only allow new points with shift-click when a pointType is selected
-    # see: self.on_roitype_popup() where we turn this off when 'All' is selected
-    #self.pointsTable._shift_click_for_new = False
-    #self.pointsTable._updateMouseCallbacks()
-
-    napari.run()
 
 if __name__ == '__main__':
-    from napari_layer_table import LayerTablePlugin
-
-    #old_run()
-    #runPointsPlugin()
     run()
