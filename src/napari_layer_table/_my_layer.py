@@ -1,5 +1,10 @@
 """
 """
+from copy import copy, deepcopy
+from typing import Callable
+
+from typing import Union #,TypeVar
+
 from pprint import pprint
 
 import numpy as np
@@ -16,7 +21,8 @@ from qtpy import QtCore
 
 #from napari.layers.points import _points_mouse_bindings  # import add, highlight, select
 from napari.layers.shapes import _shapes_mouse_bindings  #vertex_insert
-from napari.layers.utils.layer_utils import features_to_pandas_dataframe
+#from napari.layers.utils.layer_utils import features_to_pandas_dataframe
+from napari.layers.utils.layer_utils import _features_to_properties  # , _FeatureTable
 
 from napari.utils.colormaps.standardize_color import (
     rgb_to_hex,
@@ -59,28 +65,50 @@ def setsAreEqual(a, b):
 
 class mmLayer(QtCore.QObject):
     # Note: these have to be kept in sync with labelLayer signals
-    signalDataChanged = QtCore.Signal(object, object, object, pd.DataFrame)
+    signalDataChanged = QtCore.Signal(str,  # action
+                            set,            # selected set
+                            dict,           # _layerSelectionCopy
+                            pd.DataFrame)   # properties DataFrame
+    
     signalLayerNameChange = QtCore.Signal(str)
 
-    def __init__(self, viewer, layer):
+    def __init__(self, viewer, layer,
+                    onAddCallback=None,
+                    onDeleteCallback=None,
+                    ):
         super().__init__()
         
         self._viewer = viewer
         self._layer = layer
-        
+
         self._shift_click_for_new = False
+        self._onAddCallback = onAddCallback  # callback to accept/reject/modify add
+        self.newOnShiftClick(onAddCallback is not None)
+        
+        # not sure how to use bind_key
+        self._deleteOnDeleteKey = False
+        self._onDeleteCallback = onDeleteCallback  # callback to accept/reject/modify add
+        self.deleteOnDeleteKey(onDeleteCallback is not None)
+        #self._layer.bind_key(self.xxx)
+        
+        self._undo = None  # creat undo object in derived classes
 
         self._onlyOneLayer = True
 
-        #self._blockOnAdd = False
+        self._blockOnAdd = False
 
-        self._selected_data = layer.selected_data
-        if list(self._selected_data):
+        self._layerSelectionCopy = None  # a copy of all selected layer data
+
+        self._selected_data = layer.selected_data.copy()
+        
+        # replaced by full copy of table in _layerSelectionCopy
+        '''if list(self._selected_data):
             self._selected_data2 = layer.data[self._selected_data]
         else:
             # TODO (cudmore) can we initialize with None ???
             self._selected_data2 = np.ndarray([])
-        
+        '''
+
         self._numItems = len(layer.data)
 
         self._connectLayer()
@@ -93,32 +121,90 @@ class mmLayer(QtCore.QObject):
 
         self._viewer.layers.selection.events.changed.connect(self.slot_select_layer)
 
-        # todo (cudmore)
-        #self._undo = mmUndo(self)
-        #self.signalDataChanged.connect(self._undo.slot_change)
+        # todo (cudmore) for now, experiment with this in the mmPoints layer
+        self._undo = mmUndo(self)  # undo connect to self.signalDataChanged
+
+    '''
+    def keyPressEvent(self, event):
+        logger.info('')
+        if event.key() == QtCore.Qt.Key_Q:
+            pass
+        elif event.key() == QtCore.Qt.Key_Enter:
+            pass
+        event.accept()
+    '''
+
+    def on_delete_key_callback():
+        """Intercept del keystroke and decide if we really want to delete.
+        
+        Notes:
+            not implemented.
+        """
+        logger.info('')
+
+    def _copy_data(self):
+        """Make a complete copy of a layer selection.
+
+        Implement in derived classes.
+        """
+        pass
 
     def doUndo(self):
-        self._undo.doUndo()
+        if self._undo is not None:
+            self._undo.doUndo()
+
+    def addFeature(self, featureName : str, columnName : Union[str, None] = None):
+        """Add a feature to layer.
+        
+        Args:
+            featureName: The key name of the feature to add to layer
+            columnName: Specify if column name in table is different from feature name.
+        """
+        if columnName is None:
+            columnName = featureName
+        features = self._layer.features # get existing
+        # check if column exists
+        if featureName in features.columns:
+            logger.error('Feature already exists')
+            return
+        features[featureName] = None  # need to be len(layer)
 
     def snapToItem(self, selectedRow : int, isAlt : bool =False):
+        """Visually snap the viewer to selected item.
+        """
         pass
 
     def bringToFront(self):
+        """Bring the underlying layer to the front.
+        """
         if self._viewer.layers.selection.active != self._layer:
             self._viewer.layers.selection.active = self._layer
 
     def getName(self):
+        """Get the name from underlying layer.
+        """
         return self._layer.name
     
     def numItems(self):
+        """Get the current number of items.
+
+        Used to determine if we have add/delete in slot_user_edit_highlight().
+        """
         return self._numItems
         
     def selectItems(self, selectedRowSet : set):
         """Set the selected items in layer.
         
         Called from _my_widget on user selectnig row(s) in table
+        
+        TODO:
+            not used.
         """
         self._layer.selected_data = selectedRowSet
+
+    @property
+    def selected_data(self):
+        return self._selected_data
 
     def _connectLayer(self, layer=None):
         
@@ -126,7 +212,8 @@ class mmLayer(QtCore.QObject):
         self._layer.events.highlight.connect(self.slot_user_edit_highlight)
         self._layer.events.data.connect(self.slot_user_edit_data)
 
-        self._layer.events.features.connect(self.slot_user_edit_features)
+        # no longer available in PyPi napari
+        # self._layer.events.features.connect(self.slot_user_edit_features)
 
         # we want to receive an event when user sets the face color of (points, shapes)
         # this does not trigger?
@@ -140,7 +227,7 @@ class mmLayer(QtCore.QObject):
         # this is never called, not sure if it even triggers
         self._layer.events.properties.connect(self.slot_user_edit_properties)
 
-    def _updateMouseCallbacks(self, on = None):
+    def newOnShiftClick(self, on = None):
         """Enable/disable shift+click for new points.
         """
         if on is not None:
@@ -155,13 +242,22 @@ class mmLayer(QtCore.QObject):
                 # not in list
                 pass
             
+    def deleteOnDeleteKey(self, on = None):
+        self._deleteOnDeleteKey = on
+
     def _on_mouse_drag(self, layer, event):
         """Handle user mouse-clicks. Intercept shift+click to make a new point.
 
-        Will only be called when install in _updateMouseCallbacks().
+        Will only be called when install with newOnShiftClick().
         """
         if 'Shift' in event.modifiers:
             # make a new point at cursor position
+            if self._onAddCallback is not None:
+                logger.info(f'checking with _onAddCallback:{self._onAddCallback}')
+                if not self._onAddCallback():
+                    print('    shift+clik was rejected -->> no new point')
+                    return
+
             data_coordinates = self._layer.world_to_data(event.position)
             # always add as integer pixels (not fractional/float pixels)
             cords = np.round(data_coordinates).astype(int)
@@ -209,15 +305,6 @@ class mmLayer(QtCore.QObject):
             event: napari mouse down event
         """
         pass
-
-    def old_slot_select_layer(self, event):
-        """Respond to change in layer selection in viewer.
-        
-        Args:
-            event (Event): event.type == 'changed'
-        """
-        print(f'slot_select_layer() event.type: {event.type}')
-
 
     def getDataFrame(self, getFull=False) -> pd.DataFrame:
         """Get a dataframe from layer.
@@ -286,62 +373,103 @@ class mmLayer(QtCore.QObject):
             If you meant to do this, you must specify 'dtype=object' when creating the ndarray.!
 
         """
-
-        #print('\n\n')
-        #logger.info(self._derivedClassName())
-        #print('  event.source.selected_data:', event.source.selected_data)
-        #print('  self._selected_data:', self._selected_data)
-
         newSelection = not setsAreEqual(event.source.selected_data, self._selected_data)
-
+            
         action = 'none'
         if len(event.source.data) > self.numItems():
             # add an item: for points layer is point, for shapes layer is shape
             # event.source.selected_data gives us the added points
-            # for shape layer, *this is called multiple tmes without the added items selected
+            # for shape layer, *this is called multiple times without the added items selected
             if newSelection:
                 action = 'add'
+            else:
+                # this happens on add in shapes layer
+                # for shapes, need to add
+                print('    ==== data length changed but selection did not...')
+                print('     event.source.selected_data:', event.source.selected_data)
+                print('     self._selected_data:', self._selected_data)
+                '''
+                _newSelectionStart = self.numItems()
+                _newSelectionStop = len(event.source.data)
+                _newSelectionRange = np.arange(_newSelectionStart, _newSelectionStop)
+                event.source.selected_data = set(_newSelectionRange)
+                print(f'     tweeked event.source.selected_data: {event.source.selected_data}')
+                action = 'add'
+                '''
         elif len(event.source.data) < self.numItems():
             # event.source.selected_data tells us the rows
             # THEY NO LONGER EXIST
-            # our current/previous self._selected_data tells us the rows
+            # our current self._selected_data tells us the rows
             action = 'delete'
-            #_deleted_selected_data = event.source.selected_data.copy()
         elif newSelection:
             action = 'select'
-            
+
+        '''
+        if newSelection and self._blockOnAdd and not event.source.selected_data:
+            # after shapes add, we re-enter here but event.source.selected_data is empty set()
+            # should be the newly added shape(s), e.g. self._selected_data
+            print('        ================')
+            print('        action:', action)
+            print('        convert to action: select')
+            event.source.selected_data = self._selected_data
+            self._blockOnAdd = False
+        '''
+
+        logger.info(f'{self._derivedClassName()}')
+        print('    newSelection:', newSelection)
+        print('    event.source.selected_data:', event.source.selected_data)
+        print('    self._selected_data:', self._selected_data)
+        print('    len(event.source.data):', len(event.source.data))
+        print('    self.numItems():', self.numItems())
+        print('    action:', action)
+
         # signal what changed
         if action == 'add':
-            self._selected_data = event.source.selected_data
+            # for shapes layer, when we get called again selected_data == set()
+            self._blockOnAdd = True
+            
+            # on add we have new items and they are selected
+            self._selected_data = event.source.selected_data.copy()
             self._numItems = len(event.source.data)
 
-            # TODO (cudmore) event.source.data is sometimes a list?
-            # Rely on np.ndarray cast from list
-            selected_data_list = list(self._selected_data)
+            # trying to figure out shapes layer
+            # after add shapes layer trigger selection with set(), not with what was added
+            #if not self._selected_data:
+            #    print(f'    ERROR in {self._derivedClassName()} ... new shapes are not selected')
 
-            self._selected_data2 = np.take(event.source.data, selected_data_list, axis=0)
-
-            properties = self.getDataFrame()
-            print('  -->> emit "select"')
-            self.signalDataChanged.emit('add', self._selected_data, self._selected_data2, properties)
+            self._copy_data()  # copy all selected points to _layerSelectionCopy
+            self._updateFeatures(self._selected_data)
+            dfFeatures = self.getDataFrame()
+            print(f'  -->> signalDataChanged.emit "add" with _selected_data:{self._selected_data}')
+            self.signalDataChanged.emit('add', self._selected_data,
+                                self._layerSelectionCopy,
+                                dfFeatures)
 
         elif action == 'delete':
-            # deleted data indices were _deleted_selected_data
+            # on delete, data indices were deleted_selected_data
             delete_selected_data = self._selected_data.copy()
-            delete_selected_data2 = self._selected_data2.copy()
             self._selected_data = set()
-            self._selected_data2 = np.ndarray([])
             self._numItems = len(event.source.data)
-            print('  -->> emit "delete"')
-            self.signalDataChanged.emit('delete', delete_selected_data, delete_selected_data2, pd.DataFrame())
+            
+            # here we are reusing previous _layerSelectionCopy
+            # from action ('add', 'select')
+            print(f'  -->> signalDataChanged.emit "delete" with delete_selected_data:{delete_selected_data}')
+            self.signalDataChanged.emit('delete',
+                            delete_selected_data,
+                            self._layerSelectionCopy,
+                            pd.DataFrame())
         
         elif action == 'select':
-            self._selected_data = event.source.selected_data
+            self._selected_data = event.source.selected_data.copy()
+
             selectedDataList = list(self._selected_data)
-            self._selected_data2 = np.take(event.source.data, selectedDataList, axis=0)
-            properties = self.getDataFrame()
-            print('  -->> emit "select"')
-            self.signalDataChanged.emit('select', self._selected_data, self._selected_data2, properties)
+            self._copy_data()  # copy all selected points to _layerSelectionCopy
+            dfProperties = self.getDataFrame()
+            print(f'  -->> signalDataChanged.emit "select" with _selected_data:{self._selected_data}')
+            self.signalDataChanged.emit('select',
+                                self._selected_data,
+                                self._layerSelectionCopy,
+                                dfProperties)
 
     def slot_user_edit_data(self, event):
         """User edited a point in the current layer.
@@ -352,25 +480,30 @@ class mmLayer(QtCore.QObject):
             On key-press (like delete), we need to ignore event.source.mode
         """
 
-        '''
-        action = 'none'
-        if len(event.source.data) > self.numItems():
-            action = 'add'
-        elif len(event.source.data) < self.numItems():
-            action = 'delete'
-            #_deleted_selected_data = event.source.selected_data.deepcopy()
+        # if there is no selection, there is never a change
+        # this does not work for shapes layer
+        if not self._selected_data:
+            # no data changes when no selection
+            logger.info(f'NO CHANGE BECAUSE _selected_data is {self._selected_data}')
+            return
 
-        logger.info('')
-        print('    not respondng to action:', action)
-        '''
+        # we usually show x/y/z in table
+        # update our internal fatures
+        self._updateFeatures(self._selected_data)
 
-        properties = self.getDataFrame()
-        print('  -->> emit signalDataChanged "change" with')
-        print('    self._selected_data:', self._selected_data)
-        print('    self._selected_data2:', self._selected_data2)
-        #print('    properties:', properties)
+        # copy the selection
+        self._copy_data()
 
-        self.signalDataChanged.emit('change', self._selected_data, self._selected_data2, properties)
+        dfFeatures = self.getDataFrame()
+
+        print(f'  -->> signalDataChanged.emit "change" with _selected_data:{self._selected_data}')
+        print('    features:')
+        pprint(dfFeatures)
+
+        self.signalDataChanged.emit('change', 
+                        self._selected_data, 
+                        self._layerSelectionCopy, 
+                        dfFeatures)
 
     def slot_user_edit_face_color(self, event):
         """User selected a face color.
@@ -387,15 +520,21 @@ class mmLayer(QtCore.QObject):
 
             logger.info(f'current_face_color:{current_face_color}')
 
-            properties = self.getDataFrame()
+            dfProperties = self.getDataFrame()
 
             index = list(self._selected_data)
-            properties.loc[index, 'Face Color'] = current_face_color
+            dfProperties.loc[index, 'Face Color'] = current_face_color
             
             #for oneRowIndex in index:
             #    properties.loc[oneRowIndex, 'Face Color'] = current_face_color
 
-            self.signalDataChanged.emit('change', self._selected_data, self._selected_data2, properties)
+            # copy selected data, not sure this is needed, updates _layerSelectionCopy
+            self._copy_data()
+
+            self.signalDataChanged.emit('change',
+                            self._selected_data,
+                            self._layerSelectionCopy,
+                            dfProperties)
 
     def slot_user_edit_name(self, event):
         print('slot_user_edit_name()')
@@ -468,6 +607,10 @@ class mmLayer(QtCore.QObject):
             self._connectLayer(newSelectedLayer)
 
     def printEvent(self, event):
+        """Print all info on an event.
+        
+        TODO (cudmore) Not used.
+        """
         print(f'    _printEvent() type:{type(event)}')
         print(f'    event.type: {event.type}')
         print(f'    event.source: {event.source} {type(event.source)}')
@@ -487,12 +630,25 @@ class mmLayer(QtCore.QObject):
         #    print(f'    event.added: ERROR')
 
 class pointsLayer(mmLayer):
-    def __init__(self, viewer, layer):
+    def __init__(self, viewer, layer, *args, **kwargs):
 
-        super().__init__(viewer, layer)
+        super().__init__(viewer, layer, *args, **kwargs)
+
+        # features this layer will calculate
+        # updated in _updateFeatures
+        # stored in layer features and displayed as columns in table
+        self.addFeature('x')
+        self.addFeature('y')
+        self.addFeature('z')
+    
+        self._updateFeatures()
+
+        # todo (cudmore) for now, experiment with this in the mmPoints layer
+        #self._undo = mmUndo(self)  # undo connect to self.signalDataChanged
 
     def _connectLayer(self, layer=None):
-        
+        """Connect underlying layer signals to slots.
+        """
         super()._connectLayer()
 
         # this triggers but only for points layer
@@ -500,6 +656,139 @@ class pointsLayer(mmLayer):
 
         self._layer.events.symbol.connect(self.slot_user_edit_symbol)  # points layer
         self._layer.events.size.connect(self.slot_user_edit_size)  # points layer
+
+    def _updateFeatures(self, selectedDataSet=None):
+        """Update layer features based on selection.
+        
+        Used in creation and on data move.
+
+        Args:
+            selectedDataSet (set) selected data, Pass None to update all.
+        """
+        if selectedDataSet is None:
+            selectedDataSet = set(range(self.numItems()))
+        
+        selectedList = list(selectedDataSet)
+        self._layer.features.loc[selectedList, 'x'] = \
+                            self._layer.data[selectedList,2]
+        self._layer.features.loc[selectedList, 'y'] = \
+                            self._layer.data[selectedList,1]
+        if self._layer.ndim == 3:
+            self._layer.features.loc[selectedList, 'z'] = \
+                            self._layer.data[selectedList,0]
+
+    def _copy_data(self):
+        """Copy selected points to clipboard.
+        
+        Taken from napari.layers.points.points.py
+        
+        This is used to capture 'state' so we can undo with _paste_data
+        
+        problems with `pip install napari`
+        e.g. 'text': layer.text._copy(index)
+        gives error: AttributeError: 'TextManager' object has no attribute '_copy'
+
+        TODO (cudmore) this is changing with different version of napari.
+        """
+        if len(self.selected_data) > 0:
+            layer = self._layer  # abb
+            index = list(self.selected_data)
+            self._layerSelectionCopy = {
+                'data': deepcopy(layer.data[index]),
+                'edge_color': deepcopy(layer.edge_color[index]),
+                'face_color': deepcopy(layer.face_color[index]),
+                'shown': deepcopy(layer.shown[index]),
+                'size': deepcopy(layer.size[index]),
+                'edge_width': deepcopy(layer.edge_width[index]),
+                'features': deepcopy(layer.features.iloc[index]),
+                'indices': layer._slice_indices,
+                #'text': layer.text._copy(index),
+            }
+            if len(layer.text.values) == 0:
+                self._layerSelectionCopy['text'] = np.empty(0)
+            else:
+                self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+
+        else:
+            self._layerSelectionCopy = {}
+
+    def _paste_data(self, layerSelectionCopy=None):
+        """Paste any point from clipboard and select them.
+        
+        Used by undo to 'paste/add' after delete.
+        
+        Copy of code in napari.layers.points.points.py
+        
+        We need to swap self ... for `layer = self._layer``
+
+        Notes:
+            This is very complicated, will break on napari updates.
+            Hard to unit test.
+        """
+        layer = self._layer
+        if layerSelectionCopy is None:
+            _clipboard = self._layerSelectionCopy
+        else:
+            _clipboard = layerSelectionCopy
+
+        npoints = len(layer._view_data)
+        totpoints = len(layer.data)
+        
+        #if len(layer._clipboard.keys()) > 0:
+        if len(_clipboard.keys()) > 0:
+            not_disp = layer._dims_not_displayed
+            data = deepcopy(_clipboard['data'])
+            offset = [
+                layer._slice_indices[i] - _clipboard['indices'][i]
+                for i in not_disp
+            ]
+            data[:, not_disp] = data[:, not_disp] + np.array(offset)
+            layer._data = np.append(layer.data, data, axis=0)
+            layer._shown = np.append(
+                layer.shown, deepcopy(_clipboard['shown']), axis=0
+            )
+            layer._size = np.append(
+                layer.size, deepcopy(_clipboard['size']), axis=0
+            )
+
+            #layer._feature_table.append(_clipboard['features'])
+
+            #layer.text._paste(**_clipboard['text'])
+
+            layer._edge_width = np.append(
+                layer.edge_width,
+                deepcopy(_clipboard['edge_width']),
+                axis=0,
+            )
+            layer._edge._paste(
+                colors=_clipboard['edge_color'],
+                properties=_features_to_properties(
+                    _clipboard['features']
+                ),
+            )
+            layer._face._paste(
+                colors=_clipboard['face_color'],
+                properties=_features_to_properties(
+                    _clipboard['features']
+                ),
+            )
+
+            # new in `pip install napari`
+            layer._feature_table.append(_clipboard['features'])
+
+            layer._selected_view = list(
+                range(npoints, npoints + len(_clipboard['data']))
+            )
+            layer._selected_data = set(
+                range(totpoints, totpoints + len(_clipboard['data']))
+            )
+
+            if len(_clipboard['text']) > 0:
+                layer.text.values = np.concatenate(
+                    (layer.text.values, _clipboard['text']), axis=0
+                )
+
+            layer.refresh()
 
     def getDataFrame(self, getFull=False) -> pd.DataFrame:
         # getDataFrame
@@ -512,11 +801,14 @@ class pointsLayer(mmLayer):
         else:
             selectedList = list(self._selected_data)
 
+        # now handled by _updateFeatures (only update when needed)
+        '''
         # prepend (z,y,x)) columns
         df.insert(0, 'x', self._layer.data[selectedList,2])
         df.insert(0, 'y', self._layer.data[selectedList,1])
         if self._layer.ndim == 3:
             df.insert(0, 'z', self._layer.data[selectedList,0])
+        '''
 
         # prepend symbol column
         symbol = self._layer.symbol  # str
@@ -535,6 +827,10 @@ class pointsLayer(mmLayer):
         """Add an annotation to a layer.
         
         Define when deriving. For points layer use 'self._layer.add(cords)'
+
+        Notes:
+            Does not seem to be a simple way to add points to existing layer.
+            This does not set properties/features correctly
         """
         
         '''
@@ -587,25 +883,27 @@ class pointsLayer(mmLayer):
     def slot_user_edit_symbol(self, event):
         """Respond to user selecting a new symbol.
         
-        All points in layer have same symbol, need to refresh entire table.
+        Special case, all points in layer have same symbol, 
+        need to refresh entire table.
         """
-        logger.info('slot_user_edit_symbol() -->> emit')
 
         # TODO (cudmore) add mmLayer.emitChangeAll()
          
-        selected_data = list(range(self.numItems()))
-        selected_data2 = self._layer.data
-        df = self.getDataFrame_all()
+        all_selected_data = set(range(self.numItems()))
         
-        print('  selected_data:', selected_data)
-        print('  selected_data2:', selected_data2)
-        print('  df:')
-        pprint(df)
+        logger.info(f'-->> emit change with all_selected_data:{all_selected_data}')
 
-        self.signalDataChanged.emit('change', selected_data, selected_data2, df)
+        #selected_data2 = self._layer.data
+        dfFeatures = self.getDataFrame(getFull=True)
+
+        # TODO (cudmore) we do not want changeSymbol to be part of undo
+        self.signalDataChanged.emit('change', all_selected_data,
+                            #self._layerSelectionCopy,
+                            dict(),
+                            dfFeatures)
 
     def slot_user_edit_size(self, event):
-        print('slot_user_edit_size()')
+        logger.info('  -->> NOT IMPLEMENTED')
 
 class shapesLayer(mmLayer):
     """
@@ -618,10 +916,14 @@ class shapesLayer(mmLayer):
     shape_type in:
         'path': A list (array) of points making a path
     """
-    def __init__(self, viewer, layer):
-        super().__init__(viewer, layer)
+    def __init__(self, viewer, layer, *args, **kwargs):
+        super().__init__(viewer, layer, *args, **kwargs)
 
-        #self._undo = mmUndo(self)
+        self.addFeature('x')
+        self.addFeature('y')
+        self.addFeature('z')
+    
+        self._updateFeatures()
 
     def getDataFrame(self, getFull=False) -> pd.DataFrame:
         # TODO (cudmore) make sure it works for 2d/3d (what about N-Dim ???)
@@ -633,7 +935,9 @@ class shapesLayer(mmLayer):
         else:
             selectedList = list(self._selected_data)
         
+        # now handled in _updateFeatures
         # iterate through each shape and calculate (z,y,x)      
+        '''
         yMean = [np.mean(self._layer.data[idx][:,1]) for idx in selectedList]
         xMean = [np.mean(self._layer.data[idx][:,2]) for idx in selectedList]
         
@@ -642,19 +946,126 @@ class shapesLayer(mmLayer):
         if self._layer.ndim == 3:
             zMean = [np.mean(self._layer.data[idx][:,0]) for idx in selectedList]
             df.insert(0, 'z', zMean)
+        '''
 
         shape_type = [self._layer.shape_type[idx] for idx in selectedList]        
         df.insert(0, 'Shape Type', shape_type)
 
         return df
 
-    def slot_user_edit_highlight(self, event):
-        """
-        1) This is triggered when user selects 'mode'
-        """
+    def _updateFeatures(self, selectedDataSet=None):
+        """Update underlying layer features based on selection.
         
-        super().slot_user_edit_highlight(event)
-        return
+        Used in creation and on data move.
+
+        Args:
+            selectedDataSet (set) selected data, Pass None to update all.
+        """
+        if selectedDataSet is None:
+            selectedDataSet = set(range(self.numItems()))
+        
+        selectedList = list(selectedDataSet)
+
+        if self._layer.ndim == 2:
+            yMean = [np.mean(self._layer.data[idx][:,0]) for idx in selectedList]
+            xMean = [np.mean(self._layer.data[idx][:,1]) for idx in selectedList]
+        
+            self._layer.features.loc[selectedList, 'x'] = xMean
+            self._layer.features.loc[selectedList, 'y'] = yMean
+        
+        elif self._layer.ndim >= 3:
+            yMean = [np.mean(self._layer.data[idx][:,1]) for idx in selectedList]
+            xMean = [np.mean(self._layer.data[idx][:,2]) for idx in selectedList]
+        
+            self._layer.features.loc[selectedList, 'x'] = xMean
+            self._layer.features.loc[selectedList, 'y'] = yMean
+
+            zMean = [np.mean(self._layer.data[idx][:,0]) for idx in selectedList]
+            self._layer.features.loc[selectedList, 'z'] = zMean
+
+        else:
+            logger.warning(f'Did not update with self._layer.ndim:{self._layer.ndim}')
+
+    def _copy_data(self):
+        """Copy selected shapes to clipboard.
+        
+        Taken from napari.layers.shapes.shapes.py
+
+        This is buggy, depends on napari version !!!
+        """
+        if len(self.selected_data) > 0:
+            layer = self._layer
+            index = list(self.selected_data)
+            self._layerSelectionCopy = {
+                'data': [
+                    deepcopy(layer._data_view.shapes[i])
+                    for i in layer._selected_data
+                ],
+                'edge_color': deepcopy(layer._data_view._edge_color[index]),
+                'face_color': deepcopy(layer._data_view._face_color[index]),
+                'features': deepcopy(layer.features.iloc[index]),
+                'indices': layer._slice_indices,
+                #'text': layer.text._copy(index),
+            }
+            if len(layer.text.values) == 0:
+                self._layerSelectionCopy['text'] = np.empty(0)
+            else:
+                self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+ 
+        else:
+            self._layerSelectionCopy = {}
+
+    def _paste_data(self, layerSelectionCopy=None):
+        """Paste any shapes from clipboard and then selects them.
+        
+        Copy of code in napari.layers.shapes.shapes.py
+        
+        We need to swap self ... for `layer = self._layer``
+
+        Notes:
+            This is very complicated, will break on napari updates.
+            Hard to unit test.
+        """
+        layer = self._layer  # replaces self.
+        if layerSelectionCopy is None:
+            _clipboard = self._layerSelectionCopy
+        else:
+            _clipboard = layerSelectionCopy
+
+        cur_shapes = layer.nshapes
+        if len(_clipboard.keys()) > 0:
+            # Calculate offset based on dimension shifts
+            offset = [
+                layer._slice_indices[i] - _clipboard['indices'][i]
+                for i in layer._dims_not_displayed
+            ]
+
+            layer._feature_table.append(_clipboard['features'])
+
+            # Add new shape data
+            for i, s in enumerate(_clipboard['data']):
+                shape = deepcopy(s)
+                data = copy(shape.data)
+                data[:, layer._dims_not_displayed] = data[
+                    :, layer._dims_not_displayed
+                ] + np.array(offset)
+                shape.data = data
+                face_color = _clipboard['face_color'][i]
+                edge_color = _clipboard['edge_color'][i]
+                layer._data_view.add(
+                    shape, face_color=face_color, edge_color=edge_color
+                )
+
+            if len(_clipboard['text']) > 0:
+                layer.text.values = np.concatenate(
+                    (layer.text.values, _clipboard['text']), axis=0
+                )
+
+            layer.selected_data = set(
+                range(cur_shapes, cur_shapes + len(_clipboard['data']))
+            )
+
+            layer.move_to_front()
 
     def slot_user_edit_data(self, event):        
         super().slot_user_edit_data(event)
@@ -668,7 +1079,7 @@ class shapesLayer(mmLayer):
         print('      len(event.source.data):', len(event.source.data))
         print('      self.numItems():', self.numItems())
         print('      self._selected_data:', self._selected_data)
-        print('      self._selected_data2:', self._selected_data2)
+        #print('      self._selected_data2:', self._selected_data2)
 
     def addShapes(self, data, shape_type):
         #if not isinstance(shape_type, list):
@@ -709,7 +1120,14 @@ class labelLayer(QtCore.QObject):
     
     signalLayerNameChange = QtCore.Signal(str)
 
-    def __init__(self, viewer, layer):
+    def __init__(self, viewer, layer,
+                        onAddCallback=None,
+                        onDeleteCallback=None,):
+        """
+        Args:
+            onAddCallback: not implemented
+            onDeleteCallback: not implemented
+        """
         #super().__init__(viewer, layer)
         super().__init__()
 
@@ -730,6 +1148,9 @@ class labelLayer(QtCore.QObject):
 
     def getName(self):
         return self._layer.name
+
+    def _copy_data(self):
+        logger.info('labelLayer NOT IMPLEMENTED')
 
     def slot_selected_label(self, event):
         """Respond to user setting label in viewer.
@@ -763,7 +1184,8 @@ class labelLayer(QtCore.QObject):
         # in label layer we will only every select one label
         # signal/slot expects a list
         selectedLabelList = [self._selected_label]
-        self.signalDataChanged.emit('select', selectedLabelList, None, properties)
+        emptyDict = dict()
+        self.signalDataChanged.emit('select', selectedLabelList, emptyDict, properties)
 
         #_vars = vars(event)
         #pprint(_vars)

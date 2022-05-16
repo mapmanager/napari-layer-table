@@ -245,10 +245,10 @@ def _makeLabelLayer(viewer):
 
     return label_layer
 
-def runPlugin(viewer, layer):
+def runPlugin(viewer, layer, onAddCallback=None):
 
     # create the plugin
-    ltp = LayerTablePlugin(viewer, oneLayer=layer)
+    ltp = LayerTablePlugin(viewer, oneLayer=layer, onAddCallback=onAddCallback)
     #ltp.signalDataChanged.connect(on_user_edit_points2)
 
     # show
@@ -257,20 +257,26 @@ def runPlugin(viewer, layer):
     _dockWidget = viewer.window.add_dock_widget(ltp, 
                         area=area, name=name)
 
+    return ltp
+
+def addPointCallback():
+    return False
+
 def run():
     viewer = napari.Viewer()
 
     # points
     points_layer = _makePointsLayer(viewer)
-    runPlugin(viewer, points_layer)
+    points_ltp = runPlugin(viewer, points_layer, onAddCallback=addPointCallback)
+    points_ltp._myLayer.newOnShiftClick(True)  # turn on shift+click to add
 
     # shapes
     shapes_layer = _makeShapesLayer(viewer)
     runPlugin(viewer, shapes_layer)
 
     # label layer
-    label_layer = _makeLabelLayer(viewer)
-    runPlugin(viewer, label_layer)
+    #label_layer = _makeLabelLayer(viewer)
+    #runPlugin(viewer, label_layer)
 
     napari.run()
 

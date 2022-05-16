@@ -268,7 +268,8 @@ class pandasModel(QtCore.QAbstractTableModel):
             self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
 
             startIdx = self.index(rowIdx, 0)  # QModelIndex
-            stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex
+            #stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex
+            stopIdx = self.index(rowIdx, self._data.shape[1])  # QModelIndex
             
             self.dataChanged.emit(startIdx, stopIdx)
 

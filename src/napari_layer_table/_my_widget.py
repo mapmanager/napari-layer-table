@@ -86,11 +86,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
             logger.error(f'did not find a layer ???')
 
         if isinstance(oneLayer, napari.layers.points.points.Points):
-            self._myLayer = _my_layer.pointsLayer(self._viewer, oneLayer)
+            self._myLayer = _my_layer.pointsLayer(self._viewer, oneLayer, onAddCallback=onAddCallback)
         elif isinstance(oneLayer, napari.layers.shapes.shapes.Shapes):
-            self._myLayer = _my_layer.shapesLayer(self._viewer, oneLayer)
+            self._myLayer = _my_layer.shapesLayer(self._viewer, oneLayer, onAddCallback=onAddCallback)
         elif isinstance(oneLayer, napari.layers.labels.labels.Labels):
-            self._myLayer = _my_layer.labelLayer(self._viewer, oneLayer)
+            self._myLayer = _my_layer.labelLayer(self._viewer, oneLayer, onAddCallback=onAddCallback)
         else:
             logger.error(f'did not understand layer of type: {type(oneLayer)}')
             self._myLayer = None  # ERROR
@@ -119,7 +119,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
         self.refresh()  # refresh entire table
 
     def slot2_layer_data_change(self, action :str,
-                        selection : set, data : np.ndarray, df : pd.DataFrame):
+                        selection : set,
+                        layerSelectionCopy : dict,
+                        df : pd.DataFrame):
         """Respond to user interface change through liazon myLayer.
         
             TODO (cudmore) data is not used???
