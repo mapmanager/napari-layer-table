@@ -159,6 +159,15 @@ class mmLayer(QtCore.QObject):
         Args:
             featureName: The key name of the feature to add to layer
             columnName: Specify if column name in table is different from feature name.
+        
+        Notes:
+            We don't want our features (like 'x') to contaminate
+            an existinf layer features. User may already have a feature 'x'
+            we don't want to over-wrte it.
+            
+            Thus, use
+                featureName = 'ltp_x'
+                columnName = 'x'
         """
         if columnName is None:
             columnName = featureName
@@ -465,7 +474,10 @@ class mmLayer(QtCore.QObject):
             selectedDataList = list(self._selected_data)
             self._copy_data()  # copy all selected points to _layerSelectionCopy
             dfProperties = self.getDataFrame()
+            print('')
             print(f'  -->> signalDataChanged.emit "select" with _selected_data:{self._selected_data}')
+            pprint(dfProperties)
+            print('')
             self.signalDataChanged.emit('select',
                                 self._selected_data,
                                 self._layerSelectionCopy,
@@ -514,6 +526,13 @@ class mmLayer(QtCore.QObject):
             - Using hex #RRGGBBAA
             - QColor takes #AARRGGBB, see _data_model.data (QtCore.Qt.ForegroundRole)
         """
+        layer = self._viewer.layers.selection.active  # can be None
+        print('        layer selected_data:', layer.selected_data)
+        print('        self.selected_data:', self._selected_data)
+        if not setsAreEqual(layer.selected_data, self._selected_data):
+            logger.warning('ignoring event: selected_data do not match')
+            return
+
         if self._selected_data:
                        
             current_face_color = self._layer.current_face_color  # hex
@@ -530,6 +549,14 @@ class mmLayer(QtCore.QObject):
 
             # copy selected data, not sure this is needed, updates _layerSelectionCopy
             self._copy_data()
+
+            print('  -->> emit "change"')
+            print('        self._selected_data:', self._selected_data)
+            print('        dfProperties:')
+            pprint(dfProperties)
+                
+            #pprint(vars(event))
+            #print('\n\n')
 
             self.signalDataChanged.emit('change',
                             self._selected_data,
@@ -639,7 +666,8 @@ class pointsLayer(mmLayer):
         # stored in layer features and displayed as columns in table
         self.addFeature('x')
         self.addFeature('y')
-        self.addFeature('z')
+        if self._layer.ndim >= 3:
+            self.addFeature('z')
     
         self._updateFeatures()
 
@@ -652,7 +680,11 @@ class pointsLayer(mmLayer):
         super()._connectLayer()
 
         # this triggers but only for points layer
+        # was this
         self._layer._face.events.current_color.connect(self.slot_user_edit_face_color)
+        # this this
+        #self._layer.events.face_color.connect(self.slot_user_edit_face_color)
+        #self._layer.events.current_face_color.connect(self.slot_user_edit_face_color)
 
         self._layer.events.symbol.connect(self.slot_user_edit_symbol)  # points layer
         self._layer.events.size.connect(self.slot_user_edit_size)  # points layer
@@ -660,7 +692,7 @@ class pointsLayer(mmLayer):
     def _updateFeatures(self, selectedDataSet=None):
         """Update layer features based on selection.
         
-        Used in creation and on data move.
+        Used for (i) creation and (ii) on data move.
 
         Args:
             selectedDataSet (set) selected data, Pass None to update all.
@@ -966,6 +998,8 @@ class shapesLayer(mmLayer):
         
         selectedList = list(selectedDataSet)
 
+        logger.info(f'{self._derivedClassName()} selectedList:{selectedList}')
+
         if self._layer.ndim == 2:
             yMean = [np.mean(self._layer.data[idx][:,0]) for idx in selectedList]
             xMean = [np.mean(self._layer.data[idx][:,1]) for idx in selectedList]
@@ -985,6 +1019,9 @@ class shapesLayer(mmLayer):
 
         else:
             logger.warning(f'Did not update with self._layer.ndim:{self._layer.ndim}')
+
+        print('   now self._layer.features:')
+        pprint(self._layer.features)
 
     def _copy_data(self):
         """Copy selected shapes to clipboard.

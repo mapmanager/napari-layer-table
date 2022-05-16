@@ -70,7 +70,7 @@ class myTableView(QtWidgets.QTableView):
     def mySelectRows(self, rows : Set[int]):
         """Make a new row selection from viewer.
         """
-                
+                        
         # to stop event recursion
         self.blockUpdate = True
         
@@ -91,7 +91,6 @@ class myTableView(QtWidgets.QTableView):
                 row = list(rows)[0]
                 index = self.model().index(row, column)
                 self.scrollTo(index)
-
             else:
                 #print('  CLEARING SELECTION')
                 self.clearSelection()

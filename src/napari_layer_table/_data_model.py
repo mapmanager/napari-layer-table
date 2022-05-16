@@ -269,7 +269,10 @@ class pandasModel(QtCore.QAbstractTableModel):
 
             startIdx = self.index(rowIdx, 0)  # QModelIndex
             #stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex
-            stopIdx = self.index(rowIdx, self._data.shape[1])  # QModelIndex
+            stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex
+            
+            #print('  startIdx:', startIdx.row(), startIdx.column())
+            #print('  stopIdx:', stopIdx.row(), stopIdx.column())
             
             self.dataChanged.emit(startIdx, stopIdx)
 
