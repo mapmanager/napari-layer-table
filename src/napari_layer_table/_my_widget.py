@@ -39,7 +39,7 @@ from napari_layer_table._data_model import pandasModel
 from typing import List, Set
 import warnings
 
-import _my_layer
+from napari_layer_table import _my_layer
 
 class LayerTablePlugin(QtWidgets.QWidget):
     # TODO: extend this to shape layers
@@ -49,7 +49,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
                         napari.layers.Labels)
 
     # TODO (cudmore) add this back in when we allow user edit of cell(s)
-    #signalDataChanged = QtCore.Signal(object, object)
+    signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
     """Emit signal to the external code when user adds and deletes items.
        Emits:
            (str) event type which can be "add", "move" or "delete" 
@@ -65,7 +65,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
             viewer (napari.Viewer): Existing napari viewer.
             oneLayer (layer): If given then connect to this one layer,
                             otherwise, connect to all existing layers.
-            onAddCallback (def) function callback on adding points
+            onAddCallback (func) function is called on shift+click
+                params(set, pd.DataFrame)
+                return Union[None, dict]
 
         TODO (cudmore) check params and return of onAddCallback
             takes a string and returns ???
@@ -118,6 +120,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         self.refresh()  # refresh entire table
 
+    def newOnShiftClick(self, on : bool):
+        """Toggle shift+click for new.
+        """
+        self._myLayer.newOnShiftClick(on)
+
     def slot2_layer_data_change(self, action :str,
                         selection : set,
                         layerSelectionCopy : dict,
@@ -137,13 +144,15 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         if action == 'select':
             self.selectInTable(selection)
+            self.signalDataChanged.emit(action, selection, df)
+
         elif action == 'add':
             #addedRowList = selection
             #myTableData = self.getLayerDataFrame(rowList=addedRowList)
             myTableData = df
             self.myTable2.myModel.myAppendRow(myTableData)
             self.selectInTable(selection)
-            #self.signalDataChanged.emit(myEventType, myTableData)
+            self.signalDataChanged.emit(action, selection, df)
         elif action == 'delete':
             # was this
             deleteRowSet = selection
@@ -155,15 +164,15 @@ class LayerTablePlugin(QtWidgets.QWidget):
             #self._blockDeleteFromTable = True
             #self.myTable2.myModel.myDeleteRows(deleteRowList)
             #self._blockDeleteFromTable = False
-            
-            # was this
-            #self.signalDataChanged.emit(myEventType, deletedDataFrame)
+
+            self.signalDataChanged.emit(action, selection, df)
         elif action == 'change':
             moveRowList = list(selection) #rowList is actually indexes
             myTableData = df
             #myTableData = self.getLayerDataFrame(rowList=moveRowList)
             self.myTable2.myModel.mySetRow(moveRowList, myTableData)
-            #self.signalDataChanged.emit(myEventType, myTableData)
+            
+            self.signalDataChanged.emit(action, selection, df)
         else:
             logger.info(f'did not understand action: "{action}"')
 

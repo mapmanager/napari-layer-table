@@ -76,6 +76,10 @@ class mmLayer(QtCore.QObject):
                     onAddCallback=None,
                     onDeleteCallback=None,
                     ):
+        """
+        Args:
+            onAddCallback (func) params(set, pd.DataFrame) return Union[None, dict]
+        """
         super().__init__()
         
         self._viewer = viewer
@@ -243,9 +247,11 @@ class mmLayer(QtCore.QObject):
             self._shift_click_for_new = on
         
         if self._shift_click_for_new:
+            logger.info('enabling newOnShiftClick')
             self._layer.mouse_drag_callbacks.append(self._on_mouse_drag)
         else:
             try:
+                logger.info('disabling newOnShiftClick')
                 self._layer.mouse_drag_callbacks.remove(self._on_mouse_drag)
             except (ValueError) as e:
                 # not in list
@@ -263,9 +269,15 @@ class mmLayer(QtCore.QObject):
             # make a new point at cursor position
             if self._onAddCallback is not None:
                 logger.info(f'checking with _onAddCallback:{self._onAddCallback}')
-                if not self._onAddCallback():
+                # onAddCallback should determine (i) if we want to actually add
+                # (ii) if add is ok, return a dict of values for selected row
+                onAddReturn = self._onAddCallback(self._selected_data, self.getDataFrame())
+                if onAddReturn is None:
                     print('    shift+clik was rejected -->> no new point')
                     return
+                else:
+                    print('  on add return returned:')
+                    pprint(onAddReturn)
 
             data_coordinates = self._layer.world_to_data(event.position)
             # always add as integer pixels (not fractional/float pixels)
@@ -424,13 +436,14 @@ class mmLayer(QtCore.QObject):
             self._blockOnAdd = False
         '''
 
-        logger.info(f'{self._derivedClassName()}')
-        print('    newSelection:', newSelection)
-        print('    event.source.selected_data:', event.source.selected_data)
-        print('    self._selected_data:', self._selected_data)
-        print('    len(event.source.data):', len(event.source.data))
-        print('    self.numItems():', self.numItems())
-        print('    action:', action)
+        if action != 'none':
+            logger.info(f'{self._derivedClassName()}')
+            print('    newSelection:', newSelection)
+            print('    event.source.selected_data:', event.source.selected_data)
+            print('    self._selected_data:', self._selected_data)
+            print('    len(event.source.data):', len(event.source.data))
+            print('    self.numItems():', self.numItems())
+            print('    action:', action)
 
         # signal what changed
         if action == 'add':
@@ -736,6 +749,7 @@ class pointsLayer(mmLayer):
                 'indices': layer._slice_indices,
                 #'text': layer.text._copy(index),
             }
+            print(f'  === layer.text.values: "{layer.text.values}" {type(layer.text.values)}')
             if len(layer.text.values) == 0:
                 self._layerSelectionCopy['text'] = np.empty(0)
             else:
