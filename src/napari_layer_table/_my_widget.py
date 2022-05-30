@@ -429,7 +429,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
             self._myLayer._updateMouseCallbacks(self._shift_click_for_new)
 
         elif action == copyTable:
-            self.myTable2.myModel.myCopyTable()
+            # self.myTable2.myModel.myCopyTable()
+            self.copyToClipboard()
         
         elif action is not None:
             # show/hide individual comuns
@@ -439,7 +440,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         #elif action is not None:
         #    logger.warning(f'action not taken "{action.text()}"')
-
+    
+    def copyToClipboard(self):
+        self.myTable2.myModel.myCopyTable()
+    
     def hideColumns(self, columnType : str, hidden : bool = True):
         """Hide different sets of columns.
 
