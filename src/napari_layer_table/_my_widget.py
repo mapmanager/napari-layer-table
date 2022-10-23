@@ -42,8 +42,6 @@ import warnings
 from napari_layer_table import _my_layer
 
 class LayerTablePlugin(QtWidgets.QWidget):
-    # TODO: extend this to shape layers
-    #acceptedLayers = (napari.layers.Points, napari.layers.Shapes)
     acceptedLayers = (napari.layers.Points,
                         napari.layers.Shapes,
                         napari.layers.Labels)
@@ -69,8 +67,16 @@ class LayerTablePlugin(QtWidgets.QWidget):
                 params(set, pd.DataFrame)
                 return Union[None, dict]
 
+        Raises:
+            ValueError: If napari_viewer does not have a valid selected layer.
+                Designed to work with (points, shapes, labesl) layers.
+                and to work with one Napari layer.
+
         TODO (cudmore) check params and return of onAddCallback
             takes a string and returns ???
+
+        TODO (cudmore) once we are created with an accpeted layer.
+            Need to close the plugin (?) if user deletes the layer?
         """
         super().__init__()
 
@@ -84,9 +90,12 @@ class LayerTablePlugin(QtWidgets.QWidget):
         if oneLayer is None:
             oneLayer = self._findActiveLayers()
         
-        if oneLayer is None:
-            logger.error(f'did not find a layer ???')
+        # if oneLayer is None:
+        #     logger.error(f'did not find a layer ???')
 
+        # _myLayer is from our class hierarchy to fix interface problems
+        #   with variable layers in napari
+        
         if isinstance(oneLayer, napari.layers.points.points.Points):
             self._myLayer = _my_layer.pointsLayer(self._viewer, oneLayer, onAddCallback=onAddCallback)
         elif isinstance(oneLayer, napari.layers.shapes.shapes.Shapes):
@@ -94,9 +103,15 @@ class LayerTablePlugin(QtWidgets.QWidget):
         elif isinstance(oneLayer, napari.layers.labels.labels.Labels):
             self._myLayer = _my_layer.labelLayer(self._viewer, oneLayer, onAddCallback=onAddCallback)
         else:
-            logger.error(f'did not understand layer of type: {type(oneLayer)}')
             self._myLayer = None  # ERROR
+            logger.error(f'Did not understand layer of type: {type(oneLayer)}')
+            logger.error(f'Expecting a viewer with an active layer in {self.acceptedLayers}')
+            raise ValueError
 
+        #self._layer = oneLayer
+        # actual napari layer
+
+        # we have alyer in our list of 'acceptedLayers'
         self._myLayer.signalDataChanged.connect(self.slot2_layer_data_change)
         self._myLayer.signalLayerNameChange.connect(self.slot2_layer_name_change)
 
@@ -143,6 +158,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
         '''
 
         if action == 'select':
+            # TODO (cudmore) if Layer is labaeled then selection is a list
+            if isinstance(selection, list):
+                selection = set(selection)
             self.selectInTable(selection)
             self.signalDataChanged.emit(action, selection, df)
 
@@ -253,9 +271,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
         """
         logger.info('')
         self._myLayer.bringToFront()
-        #if self._viewer.layers.selection.active != self._layer:
+        #if self._viewer.layers.selection.active != self._myLayer:
         #    #print('  seting layer in viewer')
-        #    self._viewer.layers.selection.active = self._layer
+        #    self._viewer.layers.selection.active = self._myLayer
 
     def on_undo_button(self):
         self._myLayer.doUndo()
@@ -269,6 +287,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
         TODO:
             Need to handle layer=None and just empty the interface
         """
+        logger.error('TODO (cudmore) need to refactor this !!!')
+        logger.error('  basically all calls to connect have to go through our layer heirarchy in _my_layer ...')
+        return
+        
         #if layer is None:
         #    return
         
@@ -309,6 +331,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         # display the name of the layer
         self.layerNameLabel.setText(self._layer.name)
 
+        # AttributeError: 'pointsLayer' object has no attribute 'events'
         self._layer.events.data.connect(self.slot_user_edit_data)
         self._layer.events.name.connect(self.slot_user_edit_name)
         self._layer.events.symbol.connect(self.slot_user_edit_symbol)
@@ -333,7 +356,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         # TODO: remove this, should by part of map manager
         # leaving it here as proof-of-concept
-        #self._layer.mouse_wheel_callbacks.append(self.on_mouse_wheel)
+        #self._myLayer.mouse_wheel_callbacks.append(self.on_mouse_wheel)
 
         # full refresh of table
         self.refresh()
@@ -455,7 +478,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
             self.myTable2.mySetColumnHidden('y', hidden)
             self.myTable2.mySetColumnHidden('x', hidden)
         elif columnType == 'properties':
-            for property in self._layer.properties.keys():
+            for property in self._myLayer.properties.keys():
                 self.myTable2.mySetColumnHidden(property, hidden)
         else:
             logger.warning(f'did not understand columnType:{columnType}')
@@ -497,6 +520,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
         if len(selectedRowList) == 1:
             selectedRow = selectedRowList[0]  # the first row selection
             self._myLayer.snapToItem(selectedRow, isAlt)
+
+        # TODO (cudmore) getDataFrame is getting from self._myLayer.selected_Data
+        # is this always the same as selectedRowSet?
+        df = self._myLayer.getDataFrame()
+        self.signalDataChanged.emit('select', selectedRowSet, df)
 
     def _deleteRows(self, rows : Set[int]):
         self._blockDeleteFromTable = True

@@ -186,6 +186,30 @@ def _makePointsLayer(viewer):
 
     return points_layer
 
+def _makePointsLayer_2d(viewer):
+    #
+    # user always required to make their own layer
+    data = np.array([[5, 8], [10, 11], [15, 14], [20, 17]])
+    ndim =2
+    name = 'my points layer 2d'
+    size = 20
+    face_color = 'blue'
+
+    properties = {
+        'prop1': 'a',
+        'prop2': 2,
+    }
+
+    points_layer = viewer.add_points(data,
+                        ndim=ndim,
+                        name = name,
+                        size=size, 
+                        face_color=face_color, 
+                        shown = True,
+                        properties=properties)
+
+    return points_layer
+
 def _makeShapesLayer(viewer):
     # user always required to make their own layer
     data = None
@@ -259,20 +283,24 @@ def runPlugin(viewer, layer, onAddCallback=None):
 
     return ltp
 
-def addPointCallback():
-    return False
+def addPointCallback(selectedData : set, df : pd.DataFrame) -> dict:
+    logger.info('BINGO')
+    return {}
 
 def run():
     viewer = napari.Viewer()
 
     # points
-    points_layer = _makePointsLayer(viewer)
-    points_ltp = runPlugin(viewer, points_layer, onAddCallback=addPointCallback)
+    points_layer_2d = _makePointsLayer_2d(viewer)
+
+    #points_layer = _makePointsLayer(viewer)
+    
+    points_ltp = runPlugin(viewer, points_layer_2d, onAddCallback=addPointCallback)
     points_ltp._myLayer.newOnShiftClick(True)  # turn on shift+click to add
 
     # shapes
-    shapes_layer = _makeShapesLayer(viewer)
-    runPlugin(viewer, shapes_layer)
+    #shapes_layer = _makeShapesLayer(viewer)
+    #runPlugin(viewer, shapes_layer)
 
     # label layer
     #label_layer = _makeLabelLayer(viewer)

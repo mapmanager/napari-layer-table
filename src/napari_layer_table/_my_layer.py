@@ -20,9 +20,14 @@ import pandas as pd
 from qtpy import QtCore
 
 #from napari.layers.points import _points_mouse_bindings  # import add, highlight, select
-from napari.layers.shapes import _shapes_mouse_bindings  #vertex_insert
+
+# oct 17, was this
+# from napari.layers.shapes import _shapes_mouse_bindings  #vertex_insert
+
 #from napari.layers.utils.layer_utils import features_to_pandas_dataframe
-from napari.layers.utils.layer_utils import _features_to_properties  # , _FeatureTable
+
+# oct 17, was this
+# from napari.layers.utils.layer_utils import _features_to_properties  # , _FeatureTable
 
 from napari.utils.colormaps.standardize_color import (
     rgb_to_hex,
@@ -138,7 +143,11 @@ class mmLayer(QtCore.QObject):
         event.accept()
     '''
 
-    def on_delete_key_callback():
+    @property
+    def properties(self):
+        return self._layer.properties
+    
+    def old_on_delete_key_callback(self):
         """Intercept del keystroke and decide if we really want to delete.
         
         Notes:
@@ -247,11 +256,11 @@ class mmLayer(QtCore.QObject):
             self._shift_click_for_new = on
         
         if self._shift_click_for_new:
-            logger.info('enabling newOnShiftClick')
+            logger.info(f'{self._derivedClassName()} enabling newOnShiftClick')
             self._layer.mouse_drag_callbacks.append(self._on_mouse_drag)
         else:
             try:
-                logger.info('disabling newOnShiftClick')
+                logger.info(f'{self._derivedClassName()} disabling newOnShiftClick')
                 self._layer.mouse_drag_callbacks.remove(self._on_mouse_drag)
             except (ValueError) as e:
                 # not in list
@@ -267,8 +276,9 @@ class mmLayer(QtCore.QObject):
         """
         if 'Shift' in event.modifiers:
             # make a new point at cursor position
+            onAddReturn = {}
             if self._onAddCallback is not None:
-                logger.info(f'checking with _onAddCallback:{self._onAddCallback}')
+                logger.info(f'checking with _onAddCallback ...')
                 # onAddCallback should determine (i) if we want to actually add
                 # (ii) if add is ok, return a dict of values for selected row
                 onAddReturn = self._onAddCallback(self._selected_data, self.getDataFrame())
@@ -276,7 +286,7 @@ class mmLayer(QtCore.QObject):
                     print('    shift+clik was rejected -->> no new point')
                     return
                 else:
-                    print('  on add return returned:')
+                    print('  on add return returned dict:')
                     pprint(onAddReturn)
 
             data_coordinates = self._layer.world_to_data(event.position)
@@ -286,7 +296,9 @@ class mmLayer(QtCore.QObject):
             # add to layer, only for points layer?
             # for shape layer type 'path', use add_paths()
             # self._layer.add(cords)
-            self.addAnnotation(cords, event)
+            self.addAnnotation(cords, event, features=onAddReturn)
+
+            # set features from onAddReturn
 
     '''
     def on_mouse_wheel(self, layer, event):
@@ -316,7 +328,7 @@ class mmLayer(QtCore.QObject):
             #event.handled = True
     '''
 
-    def addAnnotation(self, coords, event = None):
+    def addAnnotation(self, coords, event = None, features:dict = None):
         """Add an annotation to a layer.
         
         Define when deriving. For points layer use 'self._layer.add(cords)'
@@ -713,14 +725,25 @@ class pointsLayer(mmLayer):
         if selectedDataSet is None:
             selectedDataSet = set(range(self.numItems()))
         
+        
         selectedList = list(selectedDataSet)
-        self._layer.features.loc[selectedList, 'x'] = \
-                            self._layer.data[selectedList,2]
-        self._layer.features.loc[selectedList, 'y'] = \
-                            self._layer.data[selectedList,1]
+        
+        logger.info(f'check x/y/z order')
+        print(self._layer.data)
+        
+        #TODO: (cudmore) what if points layer has dim > 3 ???
         if self._layer.ndim == 3:
             self._layer.features.loc[selectedList, 'z'] = \
                             self._layer.data[selectedList,0]
+            self._layer.features.loc[selectedList, 'x'] = \
+                                self._layer.data[selectedList,2]
+            self._layer.features.loc[selectedList, 'y'] = \
+                                self._layer.data[selectedList,1]
+        elif self._layer.ndim == 2:
+            self._layer.features.loc[selectedList, 'x'] = \
+                                self._layer.data[selectedList,1]
+            self._layer.features.loc[selectedList, 'y'] = \
+                                self._layer.data[selectedList,0]
 
     def _copy_data(self):
         """Copy selected points to clipboard.
@@ -749,9 +772,14 @@ class pointsLayer(mmLayer):
                 'indices': layer._slice_indices,
                 #'text': layer.text._copy(index),
             }
-            print(f'  === layer.text.values: "{layer.text.values}" {type(layer.text.values)}')
-            if len(layer.text.values) == 0:
-                self._layerSelectionCopy['text'] = np.empty(0)
+            # TODO (Cudmore) layer.text.values is usually a <class 'numpy.ndarray'>
+            # is this always true?
+            # secondly, what is layer.text.value anyway? and what is dtype <U1
+            # print(f'  === layer.text.values: "{layer.text.values}" {type(layer.text.values)}')
+            # print('    ', layer.text.values.shape, layer.text.values.dtype)
+            #if len(layer.text.values.shape) == 0:
+            if layer.text.values.size == 0:
+                    self._layerSelectionCopy['text'] = np.empty(0)
             else:
                 self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
 
@@ -869,8 +897,8 @@ class pointsLayer(mmLayer):
 
         return df
 
-    def addAnnotation(self, coords, event=None):
-        """Add an annotation to a layer.
+    def addAnnotation(self, coords, event=None, features:dict = None):
+        """Add a single annotation to a layer.
         
         Define when deriving. For points layer use 'self._layer.add(cords)'
 
@@ -886,7 +914,29 @@ class pointsLayer(mmLayer):
         else:
             self._layer.add(coords)
         '''
-        self._layer.add(coords)
+        
+        #
+        # IMPORTANT !!!!
+        #
+        # do the add (napari), this TRIGGERS
+        # add events before it returns
+        self._layer.add(coords)  # napari function call
+
+        # point was added and all callbacks responded
+
+        # assign features
+        logger.info('assigning features from external return dict')
+        addedIdx = self._numItems  # after added
+        addedIdx -= 1
+        for featureColumn in self._layer.features.columns:
+            if featureColumn in features.keys():
+                addedFeatureValue = features[featureColumn]
+                print(f'      addedIdx:{addedIdx} featureColumn:{featureColumn} addedFeatureValue:{addedFeatureValue}')
+                self._layer.features.loc[addedIdx, featureColumn] = addedFeatureValue
+            else:
+                # _layer has a feature we did not set???
+                print(f'  did not find featureColumn:{featureColumn} in added features')
+                pass
 
     def snapToItem(self, selectedRow : int, isAlt : bool =False):
         """Snap viewer to z-Plane of selected row and optionally to (y,x)
@@ -1155,7 +1205,9 @@ class shapesPathLayer(shapesLayer):
     def addAnnotation(self, coords, event = None):
         if event is not None:
             print('calling _shapes_mouse_bindings()')
-            _shapes_mouse_bindings.vertex_insert(self._layer, event)
+            
+            # oct 17, was this
+            # _shapes_mouse_bindings.vertex_insert(self._layer, event)
 
 # AttributeError: 'Labels' object has no attribute 'selected_data'
 #class labelLayer(mmLayer):
