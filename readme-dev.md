@@ -1,3 +1,54 @@
+## Development workflow
+
+Before pushing either a branch or main to github, you need to check some things locally or else the push will fail.
+
+On github, we are running some workflows defined in [.github/workflows](.github/workflows).
+
+1) Run all tests with `pytest`. The `--maxfail=2` will stop testing after just 2 errors and is sometmies easier to debug.
+
+    ```
+    pytest --maxfail=2
+    ```
+
+2) We are using flake8 for code linting. We only check for a few error (E9, F63, etc). See [flake documentation](https://flake8.pycqa.org/en/latest/user/error-codes.html) for more info.
+
+    ```
+    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    ```
+
+    If this **passes**, you will just see a '0'. If this **fails** you might see something like this:
+
+    ```
+    src/napari_layer_table/debugInterface.py:77:10: F821 undefined name 'shapesLayer'
+    sl = shapesLayer(viewer, shapes_layer)
+         ^
+    1     F821 undefined name 'shapesLayer'
+    ```
+
+3) Pushing a new version
+
+    If you are ready to push a new version to **main**, you need to update the version in [setup.cfg](setup.cfg). Otherwise, pushing the code to PyPi (for pip install) will fail.
+
+    ```
+    [metadata]
+    name = napari-layer-table
+    version = 0.0.9
+    ```
+
+4) If you made changes to the mkdocs documentation, you need to check that too.
+
+    The mkdocs files are in [mkdocs.yml](mkdocs.yml) file and in the [docs/](docs/) folder.
+
+    ```
+    mkdocs build
+    ```
+
+    You can always run the documentation in a local browser using
+
+    ```
+    mkdocs serve
+    ```
+
 ## Known bugs
 
  - Designed for 3D points, will generally work with 2d. Need to add a unit test to test 2d mode.
@@ -7,10 +58,29 @@
  - [fixed] if rows are selected and user sorts on column, selection is not updated
 
  - [fixed] If user sorts by column and then (adds, deletes) a point, on refresh our table is no longer in sort order.
-  - Keep track of sort order (column name, ascending/decending).
+  - [fixed] Keep track of sort order (column name, ascending/decending).
    - On add/delete point, if we have a sort 'column' then resort with proper ascending/desending.
-   - Make sure the selection is correct
+   - [fixed] Make sure the selection is correct
 
+## Start using pyenv again
+
+`pyenv` allows multiple version of Python to be installed and to easily switch between them. This might help to locally test diferent Python versions for build errors which will show up when we push to GitHub.
+
+```
+# install pyenv
+git clone https://github.com/pyenv/pyenv ~/.pyenv
+
+# setup pyenv (you should also put these three lines in .bashrc or similar)
+export PATH="${HOME}/.pyenv/bin:${PATH}"
+export PYENV_ROOT="${HOME}/.pyenv"
+eval "$(pyenv init -)"
+
+# install Python 3.7
+pyenv install 3.7.12
+
+# make it available globally
+pyenv global system 3.7.12
+```
 
 ## TODO
 

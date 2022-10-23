@@ -105,21 +105,4 @@ git push origin activate-mkdocs
 #remote:      https://github.com/mapmanager/napari-layer-table/pull/new/activate-mkdocs
 ```
 
-## start using pyenv again
-
-```
-# install pyenv
-git clone https://github.com/pyenv/pyenv ~/.pyenv
-
-# setup pyenv (you should also put these three lines in .bashrc or similar)
-export PATH="${HOME}/.pyenv/bin:${PATH}"
-export PYENV_ROOT="${HOME}/.pyenv"
-eval "$(pyenv init -)"
-
-# install Python 3.7
-pyenv install 3.7.12
-
-# make it available globally
-pyenv global system 3.7.12
-```
 

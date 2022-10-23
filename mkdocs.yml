@@ -33,5 +33,6 @@ nav:
 - API:
     - Overview: api/overview.md
     - _my_widget: api/_my_widget.md
+    - _my_layer: api/_my_layer.md
     - _table_widget: api/_table_widget.md
     - _data_model: api/_data_model.md

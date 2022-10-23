@@ -1,6 +1,6 @@
 # Welcome to napari-layer-table
 
-A plugin to display a points layer as a table.
+A Napari plugin to display a layer as a table. We currently handle point, shape, and labeled layers.
 
 <IMG SRC="img/simple-script-screenshot.png" width=800>
 
