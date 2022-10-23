@@ -22,12 +22,12 @@ from qtpy import QtCore
 #from napari.layers.points import _points_mouse_bindings  # import add, highlight, select
 
 # oct 17, was this
-# from napari.layers.shapes import _shapes_mouse_bindings  #vertex_insert
+#from napari.layers.shapes import _shapes_mouse_bindings  #vertex_insert
 
 #from napari.layers.utils.layer_utils import features_to_pandas_dataframe
 
 # oct 17, was this
-# from napari.layers.utils.layer_utils import _features_to_properties  # , _FeatureTable
+from napari.layers.utils.layer_utils import _features_to_properties  # , _FeatureTable
 
 from napari.utils.colormaps.standardize_color import (
     rgb_to_hex,
@@ -131,7 +131,7 @@ class mmLayer(QtCore.QObject):
         self._viewer.layers.selection.events.changed.connect(self.slot_select_layer)
 
         # todo (cudmore) for now, experiment with this in the mmPoints layer
-        self._undo = mmUndo(self)  # undo connect to self.signalDataChanged
+        #self._undo = mmUndo(self)  # undo connect to self.signalDataChanged
 
     '''
     def keyPressEvent(self, event):
@@ -781,7 +781,11 @@ class pointsLayer(mmLayer):
             if layer.text.values.size == 0:
                     self._layerSelectionCopy['text'] = np.empty(0)
             else:
-                self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+                try:
+                    self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+                except (IndexError) as e:
+                    logger.error(f'I DO NOT UNDERSTAND HOW TO FIX THIS! {e}')
+                    self._layerSelectionCopy['text'] = np.empty(0)
 
         else:
             self._layerSelectionCopy = {}
@@ -1111,8 +1115,11 @@ class shapesLayer(mmLayer):
             if len(layer.text.values) == 0:
                 self._layerSelectionCopy['text'] = np.empty(0)
             else:
-                self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
- 
+                try:
+                    self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+                except (IndexError) as e:
+                    logger.error(f'I DO NOT UNDERSTAND HOW TO FIX THIS! {e}')
+                    self._layerSelectionCopy['text'] = np.empty(0)
         else:
             self._layerSelectionCopy = {}
 

@@ -8,6 +8,10 @@ import numpy as np
 import napari
 
 from napari_layer_table import LayerTablePlugin
+from napari_layer_table import shapesLayer
+from napari_layer_table import pointsLayer
+from napari_layer_table import labelLayer
+from napari_layer_table import shapesPathLayer
 from napari_layer_table._my_logger import logger
 
 def slot_external_data_changed(action, rows, data, properties):
