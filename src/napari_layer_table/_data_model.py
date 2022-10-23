@@ -203,7 +203,7 @@ class pandasModel(QtCore.QAbstractTableModel):
         dfCopy = self._data.copy()
         dfCopy.to_clipboard(sep='\t', index=False)
         logger.info(f'Copied table to clipboard with shape: {dfCopy.shape}')
-        pprint(dfCopy)
+        print(dfCopy)
 
     def myAppendRow(self, dfRow : pd.DataFrame = None):
         """Append one row to internal DataFrame.
