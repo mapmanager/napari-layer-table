@@ -14,7 +14,7 @@ class myTableView(QtWidgets.QTableView):
     signalSelectionChanged = QtCore.Signal(object, object)
     """Emit when user changes row selection."""
 
-    signalEditingRows = QtCore.Signal(object, object)
+    mtv_signalEditingRows = QtCore.Signal(object, object)
     """Emit when user edits a row,
         e.g. on pressing keyboard 'a' to toggle 'accept' column.
     
@@ -56,7 +56,12 @@ class myTableView(QtWidgets.QTableView):
         self.clicked.connect(self.old_on_user_click_row)
 
     def keyPressEvent(self, event : QtGui.QKeyEvent):
-        logger.info(f'user pressed key text:{event.text()} event:{event}')
+        """
+        Parameters
+        ----------
+        event : PyQt5.QtGui.QKeyEvent
+        """
+        logger.info(f'user pressed key text:{event.text()}')
 
         _handled = False
         if event.key() == QtCore.Qt.Key_A:
@@ -78,34 +83,52 @@ class myTableView(QtWidgets.QTableView):
         e.g. on pressing keyboard 'a' to toggle 'accept' column.
 
         If col item is '' then it is False
+
+        Parameters
+        ----------
+        rowList : list of int
+        col : str
+            Column name to toggle
         """
         
-        # set the rows at col to True/False
-        df = self.myModel.myGetData()
+        logger.info(f'rowList:{rowList} col:{col}')
 
-        if not col in df.columns:
+        # set the rows at col to True/False
+        _df = self.myModel.myGetData()
+
+        if not col in _df.columns:
             logger.warning(f'Did not find column "{col}" in model dataframe')
             return
         
-        df = df.loc[rowList]
+        df = _df.loc[rowList].copy()
         colVals = df[col].tolist()
         for idx, colVal in enumerate(colVals):
-            print(f'{idx} colVal:"{colVal}" {type(colVal)}')
-            if colVal=='' or not colVal:
-                newColVal = True
+            logger.info(f'  {idx} colVal:"{colVal}" {type(colVal)}')
+            if colVal=='':
+                # newColVal = True
+                newColVal = 'xxxTrue'
             else:
                 newColVal = ''  # False
             colVals[idx] = newColVal
+        # logger.info(f'        setting df col:{col} to {colVals}')
         df[col] = colVals
 
         # do not do this directly, wait until slot_editedRows(rows, df)
         # self.myModel.mySetRow(rowList, df)
         
-        logger.info(f'  -->> emit signalEditingRows rowList:{rowList}')
-        logger.info(df)
-        self.signalEditingRows.emit(rowList, df)
+        logger.info(f'  -->> emit mtv_signalEditingRows (rowList, df))')
+        logger.info(f'    rowList:{rowList}')
+        logger.info(f'    df is: {df}')
+
+        self.myModel.mySetRow(rowList, df)
+
+        #self.mtv_signalEditingRows.emit(rowList, df)
 
         #self.slot_editedRows(rowList, df)
+
+        # 20230322, I can't get the interface to refresh after changing the model
+        # logger.info('interface does not refresh after changing the model with setData')
+        # self.xxx
 
     def setFontSize(self, fontSize : int = 11):
         """Set the table font size.
@@ -124,6 +147,13 @@ class myTableView(QtWidgets.QTableView):
         self.resizeRowsToContents()
 
     def slot_editedRows(self, rowList : List[int], df : pd.DataFrame):
+        logger.info('received rowList and df as follows')
+        print('  rowList:', rowList)
+        print('  df:')
+        print(df)
+
+        print('  after user change calling myModel.mySetRoww')
+        
         self.myModel.mySetRow(rowList, df)
 
     def _getRowSelection(self) -> List[int]:
@@ -189,7 +219,10 @@ class myTableView(QtWidgets.QTableView):
 
                 logger.warning(f'20221101 FIX SNAP TO SELECTED ROW')
                 column = 0
+                # error row is a QtCore.QModelIndex ???
                 row = visualRows[0]
+                # abb mar 22
+                row = row.row()
                 index = self.model().index(row, column)
                 self.scrollTo(index, QtWidgets.QAbstractItemView.PositionAtTop)  # EnsureVisible
 
@@ -210,6 +243,7 @@ class myTableView(QtWidgets.QTableView):
         Args:
             model (pd.DataFrame): DataFrame to set model to.
         """
+        logger.info('')
         self.myModel = model
         
         selectionModel = self.selectionModel()
@@ -230,9 +264,19 @@ class myTableView(QtWidgets.QTableView):
         self._refreshHiddenColumns()
 
     def mySetColumnHidden(self, colStr : str, hidden : bool):
+        """Set a column hidden or visible.
+        
+        Parameters
+        ----------
+        colStr : str
+            Column to hid or show
+        hidden : bool
+            If True then visible, otherwise hidden
+        """
         _columns = self.myModel.myGetData().columns
         if not colStr in _columns:
             logger.error(f'did not find {colStr} in model columns')
+            logger.error(f'  available columns are: {_columns}')
             return
             
         if hidden:
@@ -240,6 +284,9 @@ class myTableView(QtWidgets.QTableView):
         else:
             if colStr in self.hiddenColumnSet:
                 self.hiddenColumnSet.remove(colStr)
+        
+        logger.info(f'self.hiddenColumnSet: {self.hiddenColumnSet}')
+
         self._refreshHiddenColumns()
         #colIdx = self.myModel._data.columns.get_loc(colStr)
         #self.setColumnHidden(colIdx, hidden)

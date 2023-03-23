@@ -47,14 +47,14 @@ class LayerTablePlugin(QtWidgets.QWidget):
                         napari.layers.Labels)
 
     # TODO (cudmore) add this back in when we allow user edit of cell(s)
-    signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
+    ltp_signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
     """Emit signal to the external code when user adds and deletes items.
        Emits:
            (str) event type which can be "add", "move" or "delete" 
             (pd.DataFrame) for the edited row
     """
 
-    signalEditedRows = QtCore.Signal(object, object)
+    ltp_signalEditedRows = QtCore.Signal(object, object)
     """Signal emited after user edited table data and we accepted it.
     
     Args:
@@ -121,7 +121,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #self._layer = oneLayer
         # actual napari layer
 
-        # we have alyer in our list of 'acceptedLayers'
+        # we have layer in our list of 'acceptedLayers'
         self._myLayer.signalDataChanged.connect(self.slot2_layer_data_change)
         self._myLayer.signalLayerNameChange.connect(self.slot2_layer_name_change)
 
@@ -190,7 +190,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
             if isinstance(selection, list):
                 selection = set(selection)
             self.selectInTable(selection)
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
 
         elif action == 'add':
             #addedRowList = selection
@@ -198,7 +198,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
             myTableData = df
             self.myTable2.myModel.myAppendRow(myTableData)
             self.selectInTable(selection)
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
+
         elif action == 'delete':
             # was this
             deleteRowSet = selection
@@ -211,14 +212,18 @@ class LayerTablePlugin(QtWidgets.QWidget):
             #self.myTable2.myModel.myDeleteRows(deleteRowList)
             #self._blockDeleteFromTable = False
 
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
+
         elif action == 'change':
             moveRowList = list(selection) #rowList is actually indexes
             myTableData = df
             #myTableData = self.getLayerDataFrame(rowList=moveRowList)
+            
+            # this is what I call on a keystroke like 'a' for accept but interface is not updated???
             self.myTable2.myModel.mySetRow(moveRowList, myTableData)
             
-            self.signalDataChanged.emit(action, selection, df)
+            logger.warning('!!! we emit ltp_signalDataChanged but it is not connected to anybody')
+            self.ltp_signalDataChanged.emit(action, selection, df)
         else:
             logger.info(f'did not understand action: "{action}"')
 
@@ -274,10 +279,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
         self.myTable2.setFontSize(11)
         # to pass selections in table back to the viewer
         self.myTable2.signalSelectionChanged.connect(self.slot_selection_changed)
-        self.myTable2.signalEditingRows.connect(self.slot_editingRows)
+        self.myTable2.mtv_signalEditingRows.connect(self.slot_editingRows)
         # Important: we need to disconnect this signal if we have
         # a dedicated backend with data and table is a copy
-        self.signalEditedRows.connect(self.myTable2.slot_editedRows)
+        self.ltp_signalEditedRows.connect(self.myTable2.slot_editedRows)
 
         vbox_layout.addWidget(self.myTable2)
 
@@ -422,6 +427,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
             return
         
         logger.info(f'Full refresh ... limit use of this')
+        logger.info(f'refreshing from df:')
+        print(df)
 
         myModel = pandasModel(df)
         self.myTable2.mySetModel(myModel)
@@ -558,12 +565,20 @@ class LayerTablePlugin(QtWidgets.QWidget):
         # TODO (cudmore) getDataFrame is getting from self._myLayer.selected_Data
         # is this always the same as selectedRowSet?
         df = self._myLayer.getDataFrame()
-        self.signalDataChanged.emit('select', selectedRowSet, df)
+        self.ltp_signalDataChanged.emit('select', selectedRowSet, df)
 
     def slot_editingRows(self, rowList : List[int], df : pd.DataFrame):
         """Respond to user editing table rows.
         """
-        self.signalEditedRows.emit(rowList, df)
+        logger.info('  CONNECTED TO self.myTable2.mtv_signalEditingRows')
+        logger.info('  received rowList and df as follows')
+        print('  rowList:', rowList)
+        print('  df:')
+        print(df)
+        
+        logger.info(f'  -->> NOW emit ltp_signalEditedRows')
+        
+        self.ltp_signalEditedRows.emit(rowList, df)
         
     def _deleteRows(self, rows : Set[int]):
         self._blockDeleteFromTable = True

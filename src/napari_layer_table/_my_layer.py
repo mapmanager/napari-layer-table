@@ -506,7 +506,8 @@ class mmLayer(QtCore.QObject):
             selectedDataList = list(self._selected_data)
             self._copy_data()  # copy all selected points to _layerSelectionCopy
             dfProperties = self.getDataFrame()
-            print('')
+
+            logger.info(f'action:{action}')
             print(f'  -->> signalDataChanged.emit "select" with _selected_data:{self._selected_data}')
             pprint(dfProperties)
             print('')
@@ -540,8 +541,9 @@ class mmLayer(QtCore.QObject):
 
         dfFeatures = self.getDataFrame()
 
-        print(f'  -->> signalDataChanged.emit "change" with _selected_data:{self._selected_data}')
-        print('    features:')
+        logger.info('')
+        logger.info(f'  -->> signalDataChanged.emit "change" with _selected_data:{self._selected_data}')
+        logger.info('    features:')
         pprint(dfFeatures)
 
         self.signalDataChanged.emit('change', 
