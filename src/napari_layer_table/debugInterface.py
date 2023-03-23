@@ -1,3 +1,4 @@
+import time
 from pprint import pprint
 
 import pandas as pd
@@ -33,6 +34,7 @@ def myMakePointsLayer(viewer):
     face_color = 'magenta'
 
     properties = {
+        'accept': '',
         'prop1': 'a',
         'prop2': 2,
     }
@@ -176,6 +178,7 @@ def _makePointsLayer(viewer):
     face_color = 'magenta'
 
     properties = {
+        'accept': '',
         'prop1': 'a',
         'prop2': 2,
     }
@@ -249,8 +252,11 @@ def _makeLabelLayer(viewer):
 
     # get region properties
     # see: https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops
-    from skimage.measure import regionprops
-    props = regionprops(label_image, coins)
+    from skimage.measure import regionprops, regionprops_table
+    #props = regionprops(label_image, coins)
+    _propsDict = regionprops_table(label_image, properties=['label', 'centroid', 'area'])
+    _dfProps = pd.DataFrame(_propsDict)
+
     #print('props:')
     #pprint(regionProps)
     #for idx, prop in enumerate(props):
@@ -291,24 +297,76 @@ def addPointCallback(selectedData : set, df : pd.DataFrame) -> dict:
     logger.info('BINGO')
     return {}
 
+def flashItem(_layer, selectedRow):
+    # flash size/color to make it visible
+    class _selfClass:
+        def __init__(self, _layer):
+            self._layer = _layer
+    self = _selfClass(_layer)
+
+    _origColor = self._layer.face_color[selectedRow].copy()
+    _origSize = self._layer.size[selectedRow].copy()
+    _flashColor = [1., 1., 0., 1.]
+    _flashSize = _origSize * 5
+
+    print('_origColor:', _origColor)
+    print('_origSize:', _origSize)
+    print('_flashColor:', _flashColor)
+    print('_flashSize:', _flashSize)
+
+    _numFlash = 2
+    for _flash in range(_numFlash):
+        print('  _flash:', _flash)
+        self._layer.face_color[selectedRow] = _flashColor
+        self._layer.size[selectedRow] = _flashSize
+        self._layer.refresh()
+        # self._layer.events.size()
+        # self._layer.events.face_color()
+        # self._layer.events.refresh()
+        #no work self._layer.update()
+        time.sleep(0.1)
+        # 2
+        self._layer.face_color[selectedRow] = _origColor
+        self._layer.size[selectedRow] = _origSize
+        self._layer.refresh()
+        # self._layer.events.size()
+        # self._layer.events.face_color()
+        # self._layer.events.refresh()
+        #no work self._layer.update()
+        time.sleep(0.1) 
+
+    _finalColor = self._layer.face_color[selectedRow]
+    _finalSize = self._layer.size[selectedRow]
+    print('_finalColor:', _finalColor)
+    print('_finalSize:', _finalSize)
+
 def run():
+
+    _app = napari.qt.get_app()  # PyQt5.QtWidgets.QApplication
+    _app.processEvents()
+    print('_app:', type(_app))
+
     viewer = napari.Viewer()
 
     # points
-    points_layer_2d = _makePointsLayer_2d(viewer)
-
-    #points_layer = _makePointsLayer(viewer)
+    #points_layer = _makePointsLayer_2d(viewer)
+    points_layer = _makePointsLayer(viewer)  # 3d
     
-    points_ltp = runPlugin(viewer, points_layer_2d, onAddCallback=addPointCallback)
+    points_ltp = runPlugin(viewer, points_layer, onAddCallback=addPointCallback)
     points_ltp._myLayer.newOnShiftClick(True)  # turn on shift+click to add
+
+    #flashItem(points_layer, 2)
 
     # shapes
     #shapes_layer = _makeShapesLayer(viewer)
     #runPlugin(viewer, shapes_layer)
 
     # label layer
-    #label_layer = _makeLabelLayer(viewer)
-    #runPlugin(viewer, label_layer)
+    # label_layer = _makeLabelLayer(viewer)
+    # runPlugin(viewer, label_layer)
+
+    # label layer has get_Color[idx)
+    # print('face_color:', points_layer.get_color) # [[r, g, b, a]]
 
     napari.run()
 

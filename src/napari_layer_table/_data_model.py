@@ -60,7 +60,7 @@ class pandasModel(QtCore.QAbstractTableModel):
                 columnName = self._data.columns[index.column()]
                 if columnName == 'Symbol':
                     # make symbols larger
-                    return QtCore.QVariant(QtGui.QFont('Arial', pointSize=16))
+                    return QtCore.QVariant(QtGui.QFont('Arial', pointSize=14))
                 return QtCore.QVariant()
 
             elif role == QtCore.Qt.ForegroundRole:
@@ -92,6 +92,8 @@ class pandasModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant()
 
             elif role == QtCore.Qt.BackgroundRole:
+                realRow = self._data.index[index.row()]
+                
                 columnName = self._data.columns[index.column()]
                 if columnName == 'Face Color':
                     realRow = self._data.index[index.row()]
@@ -99,8 +101,9 @@ class pandasModel(QtCore.QAbstractTableModel):
                     face_color = face_color[0] + face_color[7:9] + face_color[1:7]
                     theColor = QtCore.QVariant(QtGui.QColor(face_color))
                     return theColor         
-                elif index.row() % 2 == 0:
-                        return QtCore.QVariant(QtGui.QColor('#444444'))
+                #elif index.row() % 2 == 0:
+                elif realRow % 2 == 0:
+                    return QtCore.QVariant(QtGui.QColor('#444444'))
                 else:
                     return QtCore.QVariant(QtGui.QColor('#666666'))
         #
@@ -265,7 +268,12 @@ class pandasModel(QtCore.QAbstractTableModel):
             oneRow = df.iloc[dfIdx]
             
             #IndexError: iloc cannot enlarge its target object
-            self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
+            try:
+                self._data.iloc[rowIdx] = oneRow  # needed because we are passed small df that changed
+            except (ValueError) as e:
+                logger.error(e)
+                logger.error(f'rowIdx: {rowIdx}')
+                logger.error(f'oneRow: {oneRow}')
 
             startIdx = self.index(rowIdx, 0)  # QModelIndex
             #stopIdx = self.index(rowIdx, self._data.shape[1]-1)  # QModelIndex

@@ -152,3 +152,18 @@ radius of the compartment
 parent compartment
 Every compartment has only one parent and the parent compartment for the first point in each file is always -1 (if the file does not include the soma information then the originating point of the tree will be connected to a parent of -1). The index for parent compartments are always less than child compartments. Loops and unconnected branches are excluded. All trees should originate from the soma and have parent type 1 if the file includes soma information. Soma can be a single point or more than one point. When the soma is encoded as one line in the SWC, it is interpreted as a "sphere". When it is encoded by more than 1 line, it could be a set of tapering cylinders (as in some pyramidal cells) or even a 2D projected contour ("circumference").
 
+# Debug branch 'cudmore-labels-oct-30' with Whistler data
+
+### New Features:
+
+- We now flash the point that was selected so user can see it better
+- added myTableView setFontSize()
+- mostly fixed keystroke problems (needed more 'block' in slots)
+- implemented key 'a' to toggle a column True/False, see _xxx
+
+### Bugs
+
+- Up/down arrows do not work
+- When making table from labeled, grab color of layer label and show in table
+- [fixed] When table is sorted by column and user clicks a row (point layer), the correct point is selected but the table sort order is lost (very confusing)
+- [fixed] when table rows are sorted by a column, we were painting the background row with idx (not wanted), insead we need to use the row index (Real row) that is displayed.

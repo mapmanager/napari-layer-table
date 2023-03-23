@@ -1,9 +1,11 @@
 from pprint import pprint
+from typing import Set, List
 import numpy as np
 import pandas as pd
+
 from qtpy import QtCore, QtGui, QtWidgets
+from napari_layer_table._data_model import pandasModel
 from napari_layer_table._my_logger import logger
-from typing import Set
 
 class myTableView(QtWidgets.QTableView):
     """Table view to display list of points in a point layer.
@@ -12,8 +14,15 @@ class myTableView(QtWidgets.QTableView):
     signalSelectionChanged = QtCore.Signal(object, object)
     """Emit when user changes row selection."""
 
+    signalEditingRows = QtCore.Signal(object, object)
+    """Emit when user edits a row,
+        e.g. on pressing keyboard 'a' to toggle 'accept' column.
+    
+    Args:
+        rows (List[int])
+        df (pd.DataFrame) modified dataframe
+    """
     def __init__(self, parent=None):
-        # super(myTableView, self).__init__(parent)
         super().__init__(parent)
 
         self.myModel = None
@@ -23,10 +32,18 @@ class myTableView(QtWidgets.QTableView):
         self.hiddenColumnSet = set()
         self.hiddenColumnSet.add('Face Color')
 
+        self._toggleColOnAccept = 'accept'
+        # Column to toggle on keyboard 'a'
+
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                             QtWidgets.QSizePolicy.Expanding)
+
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers
                             | QtWidgets.QAbstractItemView.DoubleClicked)
+
+        self.setTabKeyNavigation(False)  # 112022
+
+        # by default focusPolicy() is strong focus QtCore.Qt.StrongFocus
 
         self.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
@@ -37,6 +54,88 @@ class myTableView(QtWidgets.QTableView):
 
         # to allow click on already selected row
         self.clicked.connect(self.old_on_user_click_row)
+
+    def keyPressEvent(self, event : QtGui.QKeyEvent):
+        logger.info(f'user pressed key text:{event.text()} event:{event}')
+
+        _handled = False
+        if event.key() == QtCore.Qt.Key_A:
+            if self._toggleColOnAccept is not None:
+                _handled = True
+                
+                # toggle selected row(s) 'accept' column
+                rowList = self._getRowSelection()
+                if len(rowList)>0:
+                    self._toggleColumn(rowList, self._toggleColOnAccept)
+                
+        if not _handled:
+            # if not handled, call inherited to continue propogation
+            super().keyPressEvent(event)
+
+    def _toggleColumn(self, rowList : List[int], col : str):
+        """Toggle a column to True/False.
+        
+        e.g. on pressing keyboard 'a' to toggle 'accept' column.
+
+        If col item is '' then it is False
+        """
+        
+        # set the rows at col to True/False
+        df = self.myModel.myGetData()
+
+        if not col in df.columns:
+            logger.warning(f'Did not find column "{col}" in model dataframe')
+            return
+        
+        df = df.loc[rowList]
+        colVals = df[col].tolist()
+        for idx, colVal in enumerate(colVals):
+            print(f'{idx} colVal:"{colVal}" {type(colVal)}')
+            if colVal=='' or not colVal:
+                newColVal = True
+            else:
+                newColVal = ''  # False
+            colVals[idx] = newColVal
+        df[col] = colVals
+
+        # do not do this directly, wait until slot_editedRows(rows, df)
+        # self.myModel.mySetRow(rowList, df)
+        
+        logger.info(f'  -->> emit signalEditingRows rowList:{rowList}')
+        logger.info(df)
+        self.signalEditingRows.emit(rowList, df)
+
+        #self.slot_editedRows(rowList, df)
+
+    def setFontSize(self, fontSize : int = 11):
+        """Set the table font size.
+        
+        This does not set the font size of cells, that is done in model data().
+        """
+        aFont = QtGui.QFont('Arial', fontSize)
+        self.setFont(aFont)  # set the font of the cells
+        self.horizontalHeader().setFont(aFont)
+        self.verticalHeader().setFont(aFont)
+
+        self.verticalHeader().setDefaultSectionSize(fontSize)  # rows
+        self.verticalHeader().setMaximumSectionSize(fontSize)
+        #self.horizontalHeader().setDefaultSectionSize(_fontSize)  # rows
+        #self.horizontalHeader().setMaximumSectionSize(_fontSize)
+        self.resizeRowsToContents()
+
+    def slot_editedRows(self, rowList : List[int], df : pd.DataFrame):
+        self.myModel.mySetRow(rowList, df)
+
+    def _getRowSelection(self) -> List[int]:
+        """Get the current row(s) selection.
+        """
+        selectedIndexes = [self.proxy.mapToSource(modelIndex).row()
+                            for modelIndex in self.selectedIndexes()]
+        
+        # reduce to list of unique values
+        selectedIndexes = list(set(selectedIndexes))  # to get unique values
+
+        return selectedIndexes
 
     def getNumRows(self):
         """Get number of rows from the model.
@@ -71,6 +170,9 @@ class myTableView(QtWidgets.QTableView):
         """Make a new row selection from viewer.
         """
                         
+        if self.blockUpdate:
+            return
+        
         # to stop event recursion
         self.blockUpdate = True
         
@@ -85,12 +187,12 @@ class myTableView(QtWidgets.QTableView):
                 mode = QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
                 [self.selectionModel().select(i, mode) for i in visualRows]
 
-                # scroll so first row in rows is visible
-                # TODO (cudmore) does not work if list is filtered
+                logger.warning(f'20221101 FIX SNAP TO SELECTED ROW')
                 column = 0
-                row = list(rows)[0]
+                row = visualRows[0]
                 index = self.model().index(row, column)
-                self.scrollTo(index)
+                self.scrollTo(index, QtWidgets.QAbstractItemView.PositionAtTop)  # EnsureVisible
+
             else:
                 #print('  CLEARING SELECTION')
                 self.clearSelection()
@@ -98,7 +200,11 @@ class myTableView(QtWidgets.QTableView):
         #
         self.blockUpdate = False
 
-    def mySetModel(self, model : pd.DataFrame):
+    def mySetModel_from_df(self, df : pd.DataFrame):
+        myModel = pandasModel(df)
+        self.mySetModel(myModel)
+
+    def mySetModel(self, model : pandasModel):
         """ Set the model. Needed so we can show/hide columns
 
         Args:
@@ -124,6 +230,11 @@ class myTableView(QtWidgets.QTableView):
         self._refreshHiddenColumns()
 
     def mySetColumnHidden(self, colStr : str, hidden : bool):
+        _columns = self.myModel.myGetData().columns
+        if not colStr in _columns:
+            logger.error(f'did not find {colStr} in model columns')
+            return
+            
         if hidden:
             self.hiddenColumnSet.add(colStr)  # will not add twice
         else:
@@ -195,9 +306,11 @@ class myTableView(QtWidgets.QTableView):
         # reduce to list of unique values
         selectedIndexes = list(set(selectedIndexes))  # to get unique values
         
-        logger.info(f'selectedIndexes:{selectedIndexes}')
+        logger.info(f'  -->> emit signalSelectionChanged selectedIndexes:{selectedIndexes} isAlt:{isAlt}')
         
+        self.blockUpdate = True  # nov 3, 2022
         self.signalSelectionChanged.emit(selectedIndexes, isAlt)
+        self.blockUpdate = False  # nov 3, 2022
 
     '''
     def old_on_currentChanged(self, current, previous):

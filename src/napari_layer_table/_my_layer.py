@@ -1,14 +1,18 @@
 """
 """
 from copy import copy, deepcopy
-from typing import Callable
+import time
 
-from typing import Union #,TypeVar
+from typing import Union #Callable, TypeVar
 
 from pprint import pprint
 
 import numpy as np
 import pandas as pd
+
+from napari.qt import get_app  # for flash on selection, see snapToItem()
+
+from skimage.measure import regionprops, regionprops_table  # for labeled layer
 
 # turn off pandas warning
 # no longer needed, in general all pandas 'cells' have to be scalar
@@ -100,6 +104,9 @@ class mmLayer(QtCore.QObject):
         self.deleteOnDeleteKey(onDeleteCallback is not None)
         #self._layer.bind_key(self.xxx)
         
+        self._flashTimer = None
+        # flash on point selection
+
         self._undo = None  # creat undo object in derived classes
 
         self._onlyOneLayer = True
@@ -552,12 +559,16 @@ class mmLayer(QtCore.QObject):
             - QColor takes #AARRGGBB, see _data_model.data (QtCore.Qt.ForegroundRole)
         """
         layer = self._viewer.layers.selection.active  # can be None
-        print('        layer selected_data:', layer.selected_data)
-        print('        self.selected_data:', self._selected_data)
-        if not setsAreEqual(layer.selected_data, self._selected_data):
-            logger.warning('ignoring event: selected_data do not match')
+        try:
+            print('        layer selected_data:', layer.selected_data)
+            print('        self.selected_data:', self._selected_data)
+            if not setsAreEqual(layer.selected_data, self._selected_data):
+                logger.warning('ignoring event: selected_data do not match')
+                return
+        except (AttributeError) as e:
+            logger.warning(e)
             return
-
+            
         if self._selected_data:
                        
             current_face_color = self._layer.current_face_color  # hex
@@ -727,9 +738,9 @@ class pointsLayer(mmLayer):
         
         
         selectedList = list(selectedDataSet)
-        
-        logger.info(f'check x/y/z order')
-        print(self._layer.data)
+
+        # logger.info(f'check x/y/z order')
+        # print(self._layer.data)
         
         #TODO: (cudmore) what if points layer has dim > 3 ???
         if self._layer.ndim == 3:
@@ -942,6 +953,80 @@ class pointsLayer(mmLayer):
                 print(f'  did not find featureColumn:{featureColumn} in added features')
                 pass
 
+    def _flashItem(self, selectedRow : int):
+        """Flash size/color if selected item to make it visible to user.
+
+        Notes:
+            layer.refresh() did not do update, instead we are
+            tapping into and refreshing Qt in the event loop with 
+                get_app().processEvents()
+        """
+
+        # parameter
+        # _numFlash = 3
+        # _sleep1 = 0.07
+        # _sleep2 = 0.04
+
+        # logger.info(f'_numFlash:{_numFlash} _sleep1:{_sleep1} _sleep2:{_sleep2}')
+
+        _origColor = self._layer.face_color[selectedRow].copy()
+        _origSize = self._layer.size[selectedRow].copy()
+        # _flashColor = [1., 1., 0., 1.]
+        # _flashSize = _origSize / 2
+        
+        # we really need to create a timer object because
+        # multiple calls will collide when they overwrite self._flashTimerIteration
+        if self._flashTimer is not None and self._flashTimer.isActive():
+            logger.warning(f'flash timer was still running')
+            return
+        
+        self._flashTimerInterval = 30  # ms
+        self._flashTimerIterations = 6  # must be even
+        self._flashTimerIteration = 0
+
+        logger.info(f'{self._flashTimerIterations} iterations at interval {self._flashTimerInterval} ms')
+
+        self._flashTimer = QtCore.QTimer(self)
+        self._flashTimer.setInterval(30)  # ms
+
+        _origColor = self._layer.face_color[selectedRow].copy()
+        _origSize = self._layer.size[selectedRow].copy()
+
+        _callback = lambda selectedRow=selectedRow, _origColor=_origColor, _origSize=_origSize \
+            : self._on_flash_timer(selectedRow, _origColor, _origSize)
+        self._flashTimer.timeout.connect(_callback)
+        self._flashTimer.start()
+
+    def _on_flash_timer(self, selectedRow, _origColor, _origSize):
+        """Called when self.xxx QTimer times out
+        """
+        doFlash = self._flashTimerIteration % 2 == 0
+        
+        # logger.info(f'    _flashTimerIteration:{self._flashTimerIteration} doFlash:{doFlash}')
+
+        _flashColor = [1., 1., 0., 1.]
+        #_flashSize = _origSize / 2
+        _flashSize = _origSize * 3
+
+        # do flash
+        if doFlash:
+            self._layer.face_color[selectedRow] = _flashColor
+            self._layer.size[selectedRow] = _flashSize
+            self._layer.refresh()
+            get_app().processEvents()
+            #time.sleep(_sleep1)
+        else:
+            self._layer.face_color[selectedRow] = _origColor
+            self._layer.size[selectedRow] = _origSize
+            self._layer.refresh()
+            get_app().processEvents()
+            #time.sleep(_sleep2)
+
+        # increment
+        self._flashTimerIteration += 1
+        if self._flashTimerIteration >= self._flashTimerIterations:
+            self._flashTimer.stop()
+
     def snapToItem(self, selectedRow : int, isAlt : bool =False):
         """Snap viewer to z-Plane of selected row and optionally to (y,x)
         
@@ -963,7 +1048,7 @@ class pointsLayer(mmLayer):
             zSlice = self._layer.data[selectedRow][0]  # assuming (z,y,x)
             yPnt = self._layer.data[selectedRow][1]  # assuming (z,y,x)
             xPnt = self._layer.data[selectedRow][2]  # assuming (z,y,x)
-            logger.info(f'zSlice:{zSlice} y:{yPnt} x:{xPnt}')
+            logger.info(f'selectedRow:{selectedRow} zSlice:{zSlice} y:{yPnt} x:{xPnt}')
 
             # z-Plane
             axis = 0 # assuming (z,y,x)
@@ -979,6 +1064,9 @@ class pointsLayer(mmLayer):
             logger.info(f'y:{yPnt} x:{xPnt}')
             if isAlt:
                 self._viewer.camera.center = (yPnt, xPnt)
+
+        # flash selection to make it visible to user
+        self._flashItem(selectedRow)
 
     def slot_user_edit_symbol(self, event):
         """Respond to user selecting a new symbol.
@@ -1328,8 +1416,13 @@ class labelLayer(QtCore.QObject):
             selectedList = selectedList[0:-1]
             selectedList = [index+1 for index in selectedList]
         '''
+        # drop 0 from list
+        zeroIndex = selectedList.index(0)
+        if zeroIndex is not None:
+            logger.info('removing 0 from list, label layer starts at 1')
+            del selectedList[zeroIndex]
 
-        print('  selectedList:', selectedList)
+        #print('  selectedList:', selectedList)
         #print('  dfFeatures:')
         #pprint(dfFeatures)
 
@@ -1353,8 +1446,16 @@ class labelLayer(QtCore.QObject):
         colorList_hex = [str(rgb_to_hex(oneColor)[0])
                         for oneColor in colorList_rgba]
 
-        print('  colorList_hex:', colorList_hex)
+        #print('  colorList_hex:', colorList_hex)
         df.loc[selectedList, "Face Color"] = colorList_hex
+
+        # abb cudmore baltimore, adding region props to table
+        # Note: region props does not return row 0
+        _properties = ['label', 'centroid', 'area']  # 'solidity' gives convex-hull error
+        props_dict = regionprops_table(self._layer.data, properties=_properties)
+        dfProps = pd.DataFrame(props_dict)
+        # rename some columns
+        dfProps = dfProps.rename(columns={'centroid-0': 'z', 'centroid-1': 'y', 'centroid-2': 'z'})
 
         #print('df:')
         #pprint(df)

@@ -54,10 +54,20 @@ class LayerTablePlugin(QtWidgets.QWidget):
             (pd.DataFrame) for the edited row
     """
 
+    signalEditedRows = QtCore.Signal(object, object)
+    """Signal emited after user edited table data and we accepted it.
+    
+    Args:
+        rows (List[int])
+        df (df.DataFrame)
+    """
+
     def __init__(self, napari_viewer : napari.Viewer,
                     oneLayer=None,
                     onAddCallback=None):
-        """A widget to display a point layer as a table.
+        """A widget to display a layer as a table.
+        
+        Allows bi-directional selection and editing.
 
         Args:
             viewer (napari.Viewer): Existing napari viewer.
@@ -69,7 +79,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         Raises:
             ValueError: If napari_viewer does not have a valid selected layer.
-                Designed to work with (points, shapes, labesl) layers.
+                Designed to work with (points, shapes, labels) layers.
                 and to work with one Napari layer.
 
         TODO (cudmore) check params and return of onAddCallback
@@ -133,7 +143,25 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         self.slot2_layer_name_change(self._myLayer.getName())
 
+        # key binding are confusing
+        # i want keyboard 'a' to toggle selected row, 'accept' column
+        #self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        #self._viewer.bind_key('i', self._key_i_pressed)
+
         self.refresh()  # refresh entire table
+
+    # no work
+    # def keyPressEvent(self, event):
+    #     logger.info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+    #@self.viewer.bind_key('i')
+    # def _key_i_pressed(self, viewer):
+    #     logger.info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+    def getTableView(self):
+        """Get underlying QTableView.
+        """
+        return self.myTable2
 
     def newOnShiftClick(self, on : bool):
         """Toggle shift+click for new.
@@ -243,8 +271,14 @@ class LayerTablePlugin(QtWidgets.QWidget):
         vbox_layout.addLayout(controls_hbox_layout)
 
         self.myTable2 = myTableView()
+        self.myTable2.setFontSize(11)
         # to pass selections in table back to the viewer
         self.myTable2.signalSelectionChanged.connect(self.slot_selection_changed)
+        self.myTable2.signalEditingRows.connect(self.slot_editingRows)
+        # Important: we need to disconnect this signal if we have
+        # a dedicated backend with data and table is a copy
+        self.signalEditedRows.connect(self.myTable2.slot_editedRows)
+
         vbox_layout.addWidget(self.myTable2)
 
         # finalize
@@ -526,6 +560,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
         df = self._myLayer.getDataFrame()
         self.signalDataChanged.emit('select', selectedRowSet, df)
 
+    def slot_editingRows(self, rowList : List[int], df : pd.DataFrame):
+        """Respond to user editing table rows.
+        """
+        self.signalEditedRows.emit(rowList, df)
+        
     def _deleteRows(self, rows : Set[int]):
         self._blockDeleteFromTable = True
         self.myTable2.myModel.myDeleteRows(rows)

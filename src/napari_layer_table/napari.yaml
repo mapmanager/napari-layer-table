@@ -15,7 +15,7 @@ contributions:
 
     - id: napari-layer-table.make_my_qwidget
       python_name: napari_layer_table._my_widget:LayerTablePlugin
-      title: Layer_Table_Plugin
+      title: Layer Table Plugin
 
     #- id: napari-layer-table.make_magic_widget
     #  python_name: napari_layer_table._widget:example_magic_widget
@@ -36,7 +36,7 @@ contributions:
     #  display_name: Example QWidget
 
     - command: napari-layer-table.make_my_qwidget
-      display_name: Points Table
+      display_name: Layer Table
 
     #- command: napari-layer-table.make_magic_widget
     #  display_name: Example Magic Widget
