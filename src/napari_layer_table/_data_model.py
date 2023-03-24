@@ -78,7 +78,7 @@ class pandasModel(QtCore.QAbstractTableModel):
 
                     pass
 
-                return retVal
+                return str(retVal)
                 #return str(retVal)
                 #return QtCore.QVariant(retVal)
 
@@ -105,11 +105,11 @@ class pandasModel(QtCore.QAbstractTableModel):
                     retVal = ''
                 # added march 22
                 elif isinstance(retVal, str):
-                    logger.info(f'new mar 22 hrglukehrglukh returning {retVal} {type(retVal)}')
+                    logger.info(f'new mar 22 returning {retVal} {type(retVal)}')
                     #retVal = retVal
 
                 if columnName == 'accept':
-                    logger.info(f'  qwqwqw returning realRow:{realRow} columnName:{columnName} retVal: "{retVal}"')
+                    logger.info(f'  returning realRow:{realRow} columnName:{columnName} retVal: "{retVal}"')
                 
                 return retVal
 
@@ -229,13 +229,13 @@ class pandasModel(QtCore.QAbstractTableModel):
 
         theRet = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-        isEditable = True
-        isCheckbox = False
-        if isEditable:
-            theRet |= QtCore.Qt.ItemIsEditable
-        if isCheckbox:
-            #logger.info(f'isCheckbox {columnIdx}')
-            theRet |= QtCore.Qt.ItemIsUserCheckable
+        # isEditable = True
+        # isCheckbox = False
+        # if isEditable:
+        #     theRet |= QtCore.Qt.ItemIsEditable
+        # if isCheckbox:
+        #     #logger.info(f'isCheckbox {columnIdx}')
+        #     theRet |= QtCore.Qt.ItemIsUserCheckable
 
         # flags |= QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | Qt.ItemIsEnabled
 
@@ -280,7 +280,7 @@ class pandasModel(QtCore.QAbstractTableModel):
         if dfRow.empty:
             return
 
-        logger.info('qqqqqqqqqqq')
+        logger.info('')
         # append one empty row
         newRowIdx = len(self._data)
         self.beginInsertRows(QtCore.QModelIndex(), newRowIdx, newRowIdx)
@@ -311,13 +311,16 @@ class pandasModel(QtCore.QAbstractTableModel):
         # self.endRemoveRows()
         self.endResetModel()
 
-    def mySetRow(self, rowList: List[int], df: pd.DataFrame):
+    def mySetRow(self, rowList: List[int], df: pd.DataFrame, ignoreAccept : bool = False):
         """Set a number of rows from a pandas dataframe.
         
         Args:
             rowList (list of int): row indices to change
             df (pd.Dataframe): DataFrame with new values for each row in rowList.
                 Rows of dataframe correspond to enumeration of rowList list
+            ignoreAccept (bool): If True then do not assign 'accept' column
+                This is used when user moves a point
+                Napari layer does not know about accept
         """
 
         # logger.info(f'  === (0) received rowList and df, df type is {type(df)}')
@@ -354,7 +357,18 @@ class pandasModel(QtCore.QAbstractTableModel):
                 #
                 #oneRow['accept'] = 999
                 #self._data.loc[rowIdx] = oneRow
-                self._data.loc[rowIdx] = oneRow
+
+                # accept column is owned by layer table and is not in lanapri layer
+
+                # oneRow is a pandas.core.series.Series
+                if ignoreAccept:
+                    _oneRowDict = oneRow.to_dict()
+                    for k,v in _oneRowDict.items():
+                        if k == 'accept':
+                            continue
+                        self._data.loc[rowIdx, k] = v
+                else:
+                    self._data.loc[rowIdx] = oneRow
                 
                 # print('  === (2) row after set is:')
                 # print(self._data.loc[rowIdx])

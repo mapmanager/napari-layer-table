@@ -106,7 +106,7 @@ class myTableView(QtWidgets.QTableView):
             logger.info(f'  {idx} colVal:"{colVal}" {type(colVal)}')
             if colVal=='':
                 # newColVal = True
-                newColVal = 'xxxTrue'
+                newColVal = 'Yes'
             else:
                 newColVal = ''  # False
             colVals[idx] = newColVal

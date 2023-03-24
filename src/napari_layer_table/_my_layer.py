@@ -182,7 +182,7 @@ class mmLayer(QtCore.QObject):
         
         Notes:
             We don't want our features (like 'x') to contaminate
-            an existinf layer features. User may already have a feature 'x'
+            an existing layer features. User may already have a feature 'x'
             we don't want to over-wrte it.
             
             Thus, use
@@ -194,7 +194,7 @@ class mmLayer(QtCore.QObject):
         features = self._layer.features # get existing
         # check if column exists
         if featureName in features.columns:
-            logger.error('Feature already exists')
+            logger.warning('Feature already exists')
             return
         features[featureName] = None  # need to be len(layer)
 
@@ -698,6 +698,8 @@ class pointsLayer(mmLayer):
     def __init__(self, viewer, layer, *args, **kwargs):
 
         super().__init__(viewer, layer, *args, **kwargs)
+
+        logger.info('Creating pointsLayer')
 
         # features this layer will calculate
         # updated in _updateFeatures

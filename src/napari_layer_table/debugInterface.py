@@ -172,6 +172,12 @@ def _makePointsLayer(viewer):
     # user always required to make their own layer
     zSlice = 0
     data = np.array([[zSlice, 10, 10], [zSlice, 20, 20], [zSlice, 30, 30], [zSlice, 40, 40]])
+    
+    # to debug running plugin with empty layer
+    # if we run plugin with empy points layer, x y columns are not added
+    # workaround is to run plugin with at least one point
+    #data = []
+    
     ndim = 3
     name = 'my points layer'
     size = 30
@@ -349,21 +355,24 @@ def run():
     viewer = napari.Viewer()
 
     # points
-    #points_layer = _makePointsLayer_2d(viewer)
-    points_layer = _makePointsLayer(viewer)  # 3d
-    
-    points_ltp = runPlugin(viewer, points_layer, onAddCallback=addPointCallback)
-    points_ltp._myLayer.newOnShiftClick(True)  # turn on shift+click to add
+    if 1:
+        #points_layer = _makePointsLayer_2d(viewer)
+        points_layer = _makePointsLayer(viewer)  # 3d
+        
+        points_ltp = runPlugin(viewer, points_layer, onAddCallback=addPointCallback)
+        points_ltp._myLayer.newOnShiftClick(True)  # turn on shift+click to add
 
     #flashItem(points_layer, 2)
 
     # shapes
-    #shapes_layer = _makeShapesLayer(viewer)
-    #runPlugin(viewer, shapes_layer)
+    if 0:
+        shapes_layer = _makeShapesLayer(viewer)
+        runPlugin(viewer, shapes_layer)
 
     # label layer
-    # label_layer = _makeLabelLayer(viewer)
-    # runPlugin(viewer, label_layer)
+    if 0:
+        label_layer = _makeLabelLayer(viewer)
+        runPlugin(viewer, label_layer)
 
     # label layer has get_Color[idx)
     # print('face_color:', points_layer.get_color) # [[r, g, b, a]]

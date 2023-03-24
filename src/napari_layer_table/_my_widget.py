@@ -220,7 +220,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
             #myTableData = self.getLayerDataFrame(rowList=moveRowList)
             
             # this is what I call on a keystroke like 'a' for accept but interface is not updated???
-            self.myTable2.myModel.mySetRow(moveRowList, myTableData)
+            self.myTable2.myModel.mySetRow(moveRowList, myTableData, ignoreAccept=True)
             
             logger.warning('!!! we emit ltp_signalDataChanged but it is not connected to anybody')
             self.ltp_signalDataChanged.emit(action, selection, df)
@@ -240,10 +240,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
         controls_hbox_layout = QtWidgets.QHBoxLayout()
 
         # full refresh of table
-        refreshButton = QtWidgets.QPushButton('Refresh')
-        refreshButton.setToolTip('Refresh the entire table')
-        refreshButton.clicked.connect(self.on_refresh_button)
-        controls_hbox_layout.addWidget(refreshButton)
+        # refreshButton = QtWidgets.QPushButton('Refresh')
+        # refreshButton.setToolTip('Refresh the entire table')
+        # refreshButton.clicked.connect(self.on_refresh_button)
+        # controls_hbox_layout.addWidget(refreshButton)
 
         # bring layer to front in napari viewer
         #if self._onlyOneLayer:
@@ -256,23 +256,26 @@ class LayerTablePlugin(QtWidgets.QWidget):
                     style.standardIcon(QtWidgets.QStyle.SP_FileIcon))
 
         bringToFrontButton.clicked.connect(self.on_bring_to_front_button)
-        controls_hbox_layout.addWidget(bringToFrontButton)
+        controls_hbox_layout.addWidget(bringToFrontButton, alignment=QtCore.Qt.AlignLeft)
 
-        undoButton = QtWidgets.QPushButton('Undo')
-        undoButton.setToolTip('Undo')
-        # want to set an icon, temporary use built in is SP_TitleBarNormalButton
-        #TODO (cudmore) install our own .svg icons, need to use .qss file
-        style = self.style()
-        #undoButton.setIcon(
-        #            style.standardIcon(QtWidgets.QStyle.SP_BrowserReload))
+        # TODO: not implemented
+        # undoButton = QtWidgets.QPushButton('Undo')
+        # undoButton.setToolTip('Undo')
+        # # want to set an icon, temporary use built in is SP_TitleBarNormalButton
+        # #TODO (cudmore) install our own .svg icons, need to use .qss file
+        # style = self.style()
+        # #undoButton.setIcon(
+        # #            style.standardIcon(QtWidgets.QStyle.SP_BrowserReload))
 
-        undoButton.clicked.connect(self.on_undo_button)
-        controls_hbox_layout.addWidget(undoButton)
+        # undoButton.clicked.connect(self.on_undo_button)
+        # controls_hbox_layout.addWidget(undoButton)
 
         # the current layer name
         self.layerNameLabel = QtWidgets.QLabel('')
-        controls_hbox_layout.addWidget(self.layerNameLabel)
+        controls_hbox_layout.addWidget(self.layerNameLabel, alignment=QtCore.Qt.AlignLeft)
 
+        controls_hbox_layout.addStretch()
+        
         vbox_layout.addLayout(controls_hbox_layout)
 
         self.myTable2 = myTableView()
@@ -299,7 +302,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
                     return layer
         return None
 
-    def on_refresh_button(self):
+    def old_on_refresh_button(self):
+        """TODO: need to preserve 'accept' column.
+        """
         logger.info('')
         self.refresh()
 
@@ -314,7 +319,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #    #print('  seting layer in viewer')
         #    self._viewer.layers.selection.active = self._myLayer
 
-    def on_undo_button(self):
+    def old_on_undo_button(self):
         self._myLayer.doUndo()
 
     def connectLayer(self, layer):
