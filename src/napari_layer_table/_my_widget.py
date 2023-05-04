@@ -138,7 +138,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #self._onlyOneLayer = oneLayer is not None
 
         #self.myTable = None
-        self.InitGui()  # order matters, connectLayer() is accessing table
+        self._initGui()  # order matters, connectLayer() is accessing table
                         # but table has to first be created
 
         self.slot2_layer_name_change(self._myLayer.getName())
@@ -231,7 +231,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #logger.info(f'name is now: {name}')
         self.layerNameLabel.setText(name)
 
-    def InitGui(self):
+    def _initGui(self):
 
         # main vertical layout
         vbox_layout = QtWidgets.QVBoxLayout()
@@ -275,11 +275,11 @@ class LayerTablePlugin(QtWidgets.QWidget):
         controls_hbox_layout.addWidget(self.layerNameLabel, alignment=QtCore.Qt.AlignLeft)
 
         controls_hbox_layout.addStretch()
-        
+
         vbox_layout.addLayout(controls_hbox_layout)
 
         self.myTable2 = myTableView()
-        self.myTable2.setFontSize(11)
+        #self.myTable2.setFontSize(11)
         # to pass selections in table back to the viewer
         self.myTable2.signalSelectionChanged.connect(self.slot_selection_changed)
         self.myTable2.mtv_signalEditingRows.connect(self.slot_editingRows)
