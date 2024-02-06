@@ -35,10 +35,11 @@ _defaultFaceColor = '#ffff00ff'
 #     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', [2], pd.DataFrame(np.array([["▲", 2, 50, 85, 79, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "z", "x", "y", "Face Color"])),
 #     (twoDimPoints, 'red', 'red triangles layer', '^', [0], pd.DataFrame(np.array([["▲", 0, 10, 55, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "x", "y", "Face Color"]))
 # ]
-getLayerDataframe_with_rowlist_testcases = [
-    (threeDimPoints, 'yellow', 'yellow triangles layer', '^', [2], pd.DataFrame(np.array([["▲", 85, 79, 50, _defaultFaceColor]]), columns=["Symbol", "x", "y", "z", "Face Color"])),
-    (twoDimPoints, 'red', 'red triangles layer', '^', [0], pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
-]
+#
+# getLayerDataframe_with_rowlist_testcases = [
+#     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', [2], pd.DataFrame(np.array([["▲", 85, 79, 50, _defaultFaceColor]]), columns=["Symbol", "x", "y", "z", "Face Color"])),
+#     (twoDimPoints, 'red', 'red triangles layer', '^', [0], pd.DataFrame(np.array([["▲", 10, 55, [1.0, 0.0, 0.0, 1.0]]]), columns=["Symbol", "x", "y", "Face Color"]))
+# ]
 
 # getLayerDataframe_without_rowlist_testcases = [
 #     (threeDimPoints, 'yellow', 'yellow triangles layer', '^', pd.DataFrame(np.array([["▲", 0, 15, 66, 55, [1.0, 1.0, 0.0, 1.0]], ["▲", 1, 15, 65, 60, [1.0, 1.0, 0.0, 1.0]], ["▲", 2, 50, 85, 79, [1.0, 1.0, 0.0, 1.0]], ["▲", 3, 20, 90, 68, [1.0, 1.0, 0.0, 1.0]]]), columns=["Symbol", "rowIdx", "z", "x", "y", "Face Color"])),
