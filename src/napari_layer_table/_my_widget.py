@@ -47,17 +47,27 @@ class LayerTablePlugin(QtWidgets.QWidget):
                         napari.layers.Labels)
 
     # TODO (cudmore) add this back in when we allow user edit of cell(s)
-    signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
+    ltp_signalDataChanged = QtCore.Signal(str, set, pd.DataFrame)
     """Emit signal to the external code when user adds and deletes items.
        Emits:
            (str) event type which can be "add", "move" or "delete" 
             (pd.DataFrame) for the edited row
     """
 
+    ltp_signalEditedRows = QtCore.Signal(object, object)
+    """Signal emited after user edited table data and we accepted it.
+    
+    Args:
+        rows (List[int])
+        df (df.DataFrame)
+    """
+
     def __init__(self, napari_viewer : napari.Viewer,
                     oneLayer=None,
                     onAddCallback=None):
-        """A widget to display a point layer as a table.
+        """A widget to display a layer as a table.
+        
+        Allows bi-directional selection and editing.
 
         Args:
             viewer (napari.Viewer): Existing napari viewer.
@@ -69,7 +79,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
 
         Raises:
             ValueError: If napari_viewer does not have a valid selected layer.
-                Designed to work with (points, shapes, labesl) layers.
+                Designed to work with (points, shapes, labels) layers.
                 and to work with one Napari layer.
 
         TODO (cudmore) check params and return of onAddCallback
@@ -111,7 +121,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #self._layer = oneLayer
         # actual napari layer
 
-        # we have alyer in our list of 'acceptedLayers'
+        # we have layer in our list of 'acceptedLayers'
         self._myLayer.signalDataChanged.connect(self.slot2_layer_data_change)
         self._myLayer.signalLayerNameChange.connect(self.slot2_layer_name_change)
 
@@ -128,12 +138,30 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #self._onlyOneLayer = oneLayer is not None
 
         #self.myTable = None
-        self.InitGui()  # order matters, connectLayer() is accessing table
+        self._initGui()  # order matters, connectLayer() is accessing table
                         # but table has to first be created
 
         self.slot2_layer_name_change(self._myLayer.getName())
 
+        # key binding are confusing
+        # i want keyboard 'a' to toggle selected row, 'accept' column
+        #self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        #self._viewer.bind_key('i', self._key_i_pressed)
+
         self.refresh()  # refresh entire table
+
+    # no work
+    # def keyPressEvent(self, event):
+    #     logger.info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+    #@self.viewer.bind_key('i')
+    # def _key_i_pressed(self, viewer):
+    #     logger.info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+    def getTableView(self):
+        """Get underlying QTableView.
+        """
+        return self.myTable2
 
     def newOnShiftClick(self, on : bool):
         """Toggle shift+click for new.
@@ -162,7 +190,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
             if isinstance(selection, list):
                 selection = set(selection)
             self.selectInTable(selection)
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
 
         elif action == 'add':
             #addedRowList = selection
@@ -170,7 +198,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
             myTableData = df
             self.myTable2.myModel.myAppendRow(myTableData)
             self.selectInTable(selection)
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
+
         elif action == 'delete':
             # was this
             deleteRowSet = selection
@@ -183,14 +212,18 @@ class LayerTablePlugin(QtWidgets.QWidget):
             #self.myTable2.myModel.myDeleteRows(deleteRowList)
             #self._blockDeleteFromTable = False
 
-            self.signalDataChanged.emit(action, selection, df)
+            self.ltp_signalDataChanged.emit(action, selection, df)
+
         elif action == 'change':
             moveRowList = list(selection) #rowList is actually indexes
             myTableData = df
             #myTableData = self.getLayerDataFrame(rowList=moveRowList)
-            self.myTable2.myModel.mySetRow(moveRowList, myTableData)
             
-            self.signalDataChanged.emit(action, selection, df)
+            # this is what I call on a keystroke like 'a' for accept but interface is not updated???
+            self.myTable2.myModel.mySetRow(moveRowList, myTableData, ignoreAccept=True)
+            
+            logger.warning('!!! we emit ltp_signalDataChanged but it is not connected to anybody')
+            self.ltp_signalDataChanged.emit(action, selection, df)
         else:
             logger.info(f'did not understand action: "{action}"')
 
@@ -198,7 +231,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #logger.info(f'name is now: {name}')
         self.layerNameLabel.setText(name)
 
-    def InitGui(self):
+    def _initGui(self):
 
         # main vertical layout
         vbox_layout = QtWidgets.QVBoxLayout()
@@ -207,10 +240,10 @@ class LayerTablePlugin(QtWidgets.QWidget):
         controls_hbox_layout = QtWidgets.QHBoxLayout()
 
         # full refresh of table
-        refreshButton = QtWidgets.QPushButton('Refresh')
-        refreshButton.setToolTip('Refresh the entire table')
-        refreshButton.clicked.connect(self.on_refresh_button)
-        controls_hbox_layout.addWidget(refreshButton)
+        # refreshButton = QtWidgets.QPushButton('Refresh')
+        # refreshButton.setToolTip('Refresh the entire table')
+        # refreshButton.clicked.connect(self.on_refresh_button)
+        # controls_hbox_layout.addWidget(refreshButton)
 
         # bring layer to front in napari viewer
         #if self._onlyOneLayer:
@@ -223,28 +256,37 @@ class LayerTablePlugin(QtWidgets.QWidget):
                     style.standardIcon(QtWidgets.QStyle.SP_FileIcon))
 
         bringToFrontButton.clicked.connect(self.on_bring_to_front_button)
-        controls_hbox_layout.addWidget(bringToFrontButton)
+        controls_hbox_layout.addWidget(bringToFrontButton, alignment=QtCore.Qt.AlignLeft)
 
-        undoButton = QtWidgets.QPushButton('Undo')
-        undoButton.setToolTip('Undo')
-        # want to set an icon, temporary use built in is SP_TitleBarNormalButton
-        #TODO (cudmore) install our own .svg icons, need to use .qss file
-        style = self.style()
-        #undoButton.setIcon(
-        #            style.standardIcon(QtWidgets.QStyle.SP_BrowserReload))
+        # TODO: not implemented
+        # undoButton = QtWidgets.QPushButton('Undo')
+        # undoButton.setToolTip('Undo')
+        # # want to set an icon, temporary use built in is SP_TitleBarNormalButton
+        # #TODO (cudmore) install our own .svg icons, need to use .qss file
+        # style = self.style()
+        # #undoButton.setIcon(
+        # #            style.standardIcon(QtWidgets.QStyle.SP_BrowserReload))
 
-        undoButton.clicked.connect(self.on_undo_button)
-        controls_hbox_layout.addWidget(undoButton)
+        # undoButton.clicked.connect(self.on_undo_button)
+        # controls_hbox_layout.addWidget(undoButton)
 
         # the current layer name
         self.layerNameLabel = QtWidgets.QLabel('')
-        controls_hbox_layout.addWidget(self.layerNameLabel)
+        controls_hbox_layout.addWidget(self.layerNameLabel, alignment=QtCore.Qt.AlignLeft)
+
+        controls_hbox_layout.addStretch()
 
         vbox_layout.addLayout(controls_hbox_layout)
 
         self.myTable2 = myTableView()
+        #self.myTable2.setFontSize(11)
         # to pass selections in table back to the viewer
         self.myTable2.signalSelectionChanged.connect(self.slot_selection_changed)
+        self.myTable2.mtv_signalEditingRows.connect(self.slot_editingRows)
+        # Important: we need to disconnect this signal if we have
+        # a dedicated backend with data and table is a copy
+        self.ltp_signalEditedRows.connect(self.myTable2.slot_editedRows)
+
         vbox_layout.addWidget(self.myTable2)
 
         # finalize
@@ -260,7 +302,9 @@ class LayerTablePlugin(QtWidgets.QWidget):
                     return layer
         return None
 
-    def on_refresh_button(self):
+    def old_on_refresh_button(self):
+        """TODO: need to preserve 'accept' column.
+        """
         logger.info('')
         self.refresh()
 
@@ -275,7 +319,7 @@ class LayerTablePlugin(QtWidgets.QWidget):
         #    #print('  seting layer in viewer')
         #    self._viewer.layers.selection.active = self._myLayer
 
-    def on_undo_button(self):
+    def old_on_undo_button(self):
         self._myLayer.doUndo()
 
     def connectLayer(self, layer):
@@ -388,6 +432,8 @@ class LayerTablePlugin(QtWidgets.QWidget):
             return
         
         logger.info(f'Full refresh ... limit use of this')
+        logger.info(f'refreshing from df:')
+        print(df)
 
         myModel = pandasModel(df)
         self.myTable2.mySetModel(myModel)
@@ -524,8 +570,21 @@ class LayerTablePlugin(QtWidgets.QWidget):
         # TODO (cudmore) getDataFrame is getting from self._myLayer.selected_Data
         # is this always the same as selectedRowSet?
         df = self._myLayer.getDataFrame()
-        self.signalDataChanged.emit('select', selectedRowSet, df)
+        self.ltp_signalDataChanged.emit('select', selectedRowSet, df)
 
+    def slot_editingRows(self, rowList : List[int], df : pd.DataFrame):
+        """Respond to user editing table rows.
+        """
+        logger.info('  CONNECTED TO self.myTable2.mtv_signalEditingRows')
+        logger.info('  received rowList and df as follows')
+        print('  rowList:', rowList)
+        print('  df:')
+        print(df)
+        
+        logger.info(f'  -->> NOW emit ltp_signalEditedRows')
+        
+        self.ltp_signalEditedRows.emit(rowList, df)
+        
     def _deleteRows(self, rows : Set[int]):
         self._blockDeleteFromTable = True
         self.myTable2.myModel.myDeleteRows(rows)

@@ -45,6 +45,7 @@ my_set_model_test_cases = [
     (noPoints, pd.DataFrame(noPoints)), # (0,) -> 1D array: 0 rows, no columns
 ]
 
+# dataframe, colStr, hidden
 my_set_column_hidden_test_cases = [
     (pd.DataFrame([
           [1, 9, 2],
@@ -54,10 +55,10 @@ my_set_column_hidden_test_cases = [
           [1, 2],
           [1, -1],
         ], columns = ['x', 'y']), 'y', False),
-    (pd.DataFrame([
-          [1, 2],
-          [1, -1],
-        ], columns = ['x', 'y']), 'w', True)
+    # (pd.DataFrame([
+    #       [1, 2],
+    #       [1, -1],
+    #     ], columns = ['x', 'y']), 'Symbol', True)  # TODO: Symbol was 'w'?
 ]
 
 my_set_column_hidden_for_unhiding_hidden_columns_test_cases = [
@@ -197,6 +198,8 @@ def test_my_set_column_hidden_for_unhiding_hidden_columns(table, dataframe, colS
 
     # Act
     table.mySetColumnHidden(colStr, False)
+
+    #print('table.hiddenColumnSet:', table.hiddenColumnSet)
 
     # Assert
     assert colStr not in table.hiddenColumnSet

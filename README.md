@@ -12,6 +12,8 @@
 
 A plugin to display a layer as a table.
 
+This will work well with point layers. We are debugging shapes and labeled layers, come back to check on that!
+
 ----------------------------------
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
