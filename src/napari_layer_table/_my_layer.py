@@ -43,7 +43,7 @@ from napari_layer_table._undo import mmUndo
 SYMBOL_ALIAS = {
     'arrow': '\u02C3',
     'clobber': '\u2663',  # no corresponding unicode ?
-    'cross': '\u271A',
+    # 'cross': '\u271A', # abb remove 202402
     'diamond': '\u25C6',
     'disc': '\u26AB',
     'hbar': '\u2501',
@@ -54,6 +54,7 @@ SYMBOL_ALIAS = {
     'triangle_down': '\u25BC',
     'triangle_up': '\u25B2',
     'vbar': '\u2759',
+    'cross': '\u002B',  # abb 202402
     'x': '\u2716',    
     }
 
@@ -470,33 +471,37 @@ class mmLayer(QtCore.QObject):
             # after add shapes layer trigger selection with set(), not with what was added
             #if not self._selected_data:
             #    print(f'    ERROR in {self._derivedClassName()} ... new shapes are not selected')
-
+            _selected_data_set = set(self._selected_data)  # abb 202402
             self._copy_data()  # copy all selected points to _layerSelectionCopy
             self._updateFeatures(self._selected_data)
             dfFeatures = self.getDataFrame()
             print(f'  -->> signalDataChanged.emit "add" with _selected_data:{self._selected_data}')
-            self.signalDataChanged.emit('add', self._selected_data,
+            self.signalDataChanged.emit('add',
+                                _selected_data_set,
+                                # self._selected_data,
                                 self._layerSelectionCopy,
                                 dfFeatures)
 
         elif action == 'delete':
             # on delete, data indices were deleted_selected_data
             delete_selected_data = self._selected_data.copy()
+            delete_selected_data_set = set(delete_selected_data)  # abb 202402
             self._selected_data = set()
             self._numItems = len(event.source.data)
             
             # here we are reusing previous _layerSelectionCopy
             # from action ('add', 'select')
-            print(f'  -->> signalDataChanged.emit "delete" with delete_selected_data:{delete_selected_data}')
+            logger.info(f'  -->> signalDataChanged.emit "delete" with delete_selected_data:{delete_selected_data}')
             self.signalDataChanged.emit('delete',
-                            delete_selected_data,
+                            delete_selected_data_set,  # abb 202402
+                            # delete_selected_data,
                             self._layerSelectionCopy,
                             pd.DataFrame())
         
         elif action == 'select':
             self._selected_data = event.source.selected_data.copy()
 
-            selectedDataList = list(self._selected_data)
+            selectedDataSet = set(self._selected_data)
             self._copy_data()  # copy all selected points to _layerSelectionCopy
             dfProperties = self.getDataFrame()
             print('')
@@ -504,7 +509,8 @@ class mmLayer(QtCore.QObject):
             pprint(dfProperties)
             print('')
             self.signalDataChanged.emit('select',
-                                self._selected_data,
+                                selectedDataSet,  # abb 202402
+                                # self._selected_data,
                                 self._layerSelectionCopy,
                                 dfProperties)
 
@@ -537,8 +543,10 @@ class mmLayer(QtCore.QObject):
         print('    features:')
         pprint(dfFeatures)
 
+        selectedDataSet = set(self._selected_data)
         self.signalDataChanged.emit('change', 
-                        self._selected_data, 
+                        selectedDataSet,  # abb 202402
+                        # self._selected_data, 
                         self._layerSelectionCopy, 
                         dfFeatures)
 
@@ -582,9 +590,10 @@ class mmLayer(QtCore.QObject):
                 
             #pprint(vars(event))
             #print('\n\n')
-
+            _selected_data_set = set(self._selected_data)
             self.signalDataChanged.emit('change',
-                            self._selected_data,
+                            _selected_data_set,
+                            # self._selected_data,
                             self._layerSelectionCopy,
                             dfProperties)
 
@@ -879,6 +888,8 @@ class pointsLayer(mmLayer):
         else:
             selectedList = list(self._selected_data)
 
+        # logger.warning(f'selectedList:{selectedList}')
+
         # now handled by _updateFeatures (only update when needed)
         '''
         # prepend (z,y,x)) columns
@@ -888,16 +899,29 @@ class pointsLayer(mmLayer):
             df.insert(0, 'z', self._layer.data[selectedList,0])
         '''
 
+        # abb 202402 we are receiving a list of symbols
         # prepend symbol column
         symbol = self._layer.symbol  # str
-        try:
-            symbol = SYMBOL_ALIAS[symbol]
-        except (KeyError) as e:
-            logger.warning(f'did not find symbol in SYMBOL_ALIAS named "{symbol}"')
-            symbol = 'X'
-        # this is needed to keep number of rows correct
-        symbolList = [symbol] * len(selectedList)  # data.shape[0]  # make symbols for each point
+        # logger.warning(f'getFull:{getFull} received symbol:{symbol} {type(symbol)}')
+        # symbol = str(symbol)  # abb 20240206
+        symbol = [SYMBOL_ALIAS[str(_symbol)] for _symbol in symbol]  # abb 202402
+
+        # abb remove 202402
+        # try:
+        #     symbol = SYMBOL_ALIAS[symbol]
+        # except (KeyError) as e:
+        #     logger.warning(f'did not find symbol in SYMBOL_ALIAS named "{symbol}"')
+        #     symbol = 'X'
+        # # this is needed to keep number of rows correct
+        # symbolList = [symbol] * len(selectedList)  # data.shape[0]  # make symbols for each point
+
+        # abb 202402 cludge
+        #symbolList = [symbol[0]] * len(selectedList)  # data.shape[0]  # make symbols for each point
+
+        symbolList = [symbol[i] for i in selectedList]
+
         df.insert(loc=0, column='Symbol', value=symbolList)  # insert as first column
+        # df.insert(loc=0, column='Symbol', value=symbol)  # insert as first column
 
         return df
 
@@ -1110,16 +1134,18 @@ class shapesLayer(mmLayer):
                 'face_color': deepcopy(layer._data_view._face_color[index]),
                 'features': deepcopy(layer.features.iloc[index]),
                 'indices': layer._slice_indices,
-                #'text': layer.text._copy(index),
+                'text': layer.text._copy(index),  # abb 202402 un-commented
             }
-            if len(layer.text.values) == 0:
-                self._layerSelectionCopy['text'] = np.empty(0)
-            else:
-                try:
-                    self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
-                except (IndexError) as e:
-                    logger.error(f'I DO NOT UNDERSTAND HOW TO FIX THIS! {e}')
-                    self._layerSelectionCopy['text'] = np.empty(0)
+            
+            # abb remove 202402
+            # if len(layer.text.values) == 0:
+            #     self._layerSelectionCopy['text'] = np.empty(0)
+            # else:
+            #     try:
+            #         self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
+            #     except (IndexError) as e:
+            #         logger.error(f'I DO NOT UNDERSTAND HOW TO FIX THIS! {e}')
+            #         self._layerSelectionCopy['text'] = np.empty(0)
         else:
             self._layerSelectionCopy = {}
 
