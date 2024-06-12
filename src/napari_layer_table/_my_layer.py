@@ -535,7 +535,7 @@ class mmLayer(QtCore.QObject):
         # this does not work for shapes layer
         if not self._selected_data:
             # no data changes when no selection
-            logger.info(f'NO CHANGE BECAUSE _selected_data is {self._selected_data}')
+            logger.info(f'NO CHANGE BECAUSE _selected_data is (empty) {self._selected_data}')
             return
 
         # we usually show x/y/z in table
@@ -793,7 +793,10 @@ class pointsLayer(mmLayer):
                 'size': deepcopy(layer.size[index]),
                 'edge_width': deepcopy(layer.edge_width[index]),
                 'features': deepcopy(layer.features.iloc[index]),
-                'indices': layer._slice_indices,
+                # 20240612
+                # AttributeError: 'Points' object has no attribute '_slice_indices'
+                # 'indices': layer._slice_indices,
+                
                 #'text': layer.text._copy(index),
             }
             # TODO (Cudmore) layer.text.values is usually a <class 'numpy.ndarray'>
@@ -808,7 +811,8 @@ class pointsLayer(mmLayer):
                 try:
                     self._layerSelectionCopy['text'] = deepcopy(layer.text.values[index])
                 except (IndexError) as e:
-                    logger.error(f'I DO NOT UNDERSTAND HOW TO FIX THIS! {e}')
+                    logger.error('   I DO NOT UNDERSTAND HOW TO FIX THIS!')
+                    logger.error(e)
                     self._layerSelectionCopy['text'] = np.empty(0)
 
         else:
