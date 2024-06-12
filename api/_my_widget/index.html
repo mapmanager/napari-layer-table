@@ -1,0 +1,3346 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Napari plugin to display a layer as a table.">
+      
+      
+        <meta name="author" content="Cudmore Lab">
+      
+      
+      
+        <link rel="prev" href="../overview/">
+      
+      
+        <link rel="next" href="../_my_layer/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.26">
+    
+    
+      
+        <title>_my_widget - napari-layer-table</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#napari_layer_table._my_widget" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="napari-layer-table" class="md-header__button md-logo" aria-label="napari-layer-table" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            napari-layer-table
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              _my_widget
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mapmanager/napari-layer-table" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="napari-layer-table" class="md-nav__button md-logo" aria-label="napari-layer-table" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    napari-layer-table
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mapmanager/napari-layer-table" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scripting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scripting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    _my_widget
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    _my_widget
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      _my_widget
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      LayerTablePlugin
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LayerTablePlugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.ltp_signalDataChanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      ltp_signalDataChanged
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.ltp_signalEditedRows" class="md-nav__link">
+    <span class="md-ellipsis">
+      ltp_signalEditedRows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.connectLayer" class="md-nav__link">
+    <span class="md-ellipsis">
+      connectLayer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.contextMenuEvent" class="md-nav__link">
+    <span class="md-ellipsis">
+      contextMenuEvent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.getTableView" class="md-nav__link">
+    <span class="md-ellipsis">
+      getTableView
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.hideColumns" class="md-nav__link">
+    <span class="md-ellipsis">
+      hideColumns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.newOnShiftClick" class="md-nav__link">
+    <span class="md-ellipsis">
+      newOnShiftClick
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.old_on_refresh_button" class="md-nav__link">
+    <span class="md-ellipsis">
+      old_on_refresh_button
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.on_bring_to_front_button" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_bring_to_front_button
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.selectInTable" class="md-nav__link">
+    <span class="md-ellipsis">
+      selectInTable
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot2_layer_data_change" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot2_layer_data_change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot_editingRows" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot_editingRows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot_selection_changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot_selection_changed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_my_layer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    _my_layer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_table_widget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    _table_widget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_data_model/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    _data_model
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      _my_widget
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      LayerTablePlugin
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LayerTablePlugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.ltp_signalDataChanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      ltp_signalDataChanged
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.ltp_signalEditedRows" class="md-nav__link">
+    <span class="md-ellipsis">
+      ltp_signalEditedRows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.connectLayer" class="md-nav__link">
+    <span class="md-ellipsis">
+      connectLayer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.contextMenuEvent" class="md-nav__link">
+    <span class="md-ellipsis">
+      contextMenuEvent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.getTableView" class="md-nav__link">
+    <span class="md-ellipsis">
+      getTableView
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.hideColumns" class="md-nav__link">
+    <span class="md-ellipsis">
+      hideColumns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.newOnShiftClick" class="md-nav__link">
+    <span class="md-ellipsis">
+      newOnShiftClick
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.old_on_refresh_button" class="md-nav__link">
+    <span class="md-ellipsis">
+      old_on_refresh_button
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.on_bring_to_front_button" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_bring_to_front_button
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.selectInTable" class="md-nav__link">
+    <span class="md-ellipsis">
+      selectInTable
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot2_layer_data_change" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot2_layer_data_change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot_editingRows" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot_editingRows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#napari_layer_table._my_widget.LayerTablePlugin.slot_selection_changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      slot_selection_changed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>_my_widget</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="napari_layer_table._my_widget"></a>
+    <div class="doc doc-contents first">
+
+      <p>Widget to display points layer as a table.</p>
+<ul>
+<li>The selected layer is displayed in the table.</li>
+<li>
+<p>The table has columns for:</p>
+<ul>
+<li>Point symbol with face color</li>
+<li>Point coordinates (x,y,z)</li>
+<li>If the layer has properties, these are also columns</li>
+</ul>
+</li>
+<li>
+<p>Bi-directional selection between layer and table.</p>
+</li>
+<li>Bi-directional delete between layer and table.</li>
+<li>Points added to the layer are added to the table.</li>
+<li>Points moved in the layer are updated in the table.</li>
+<li>Changes to face color and symbol in the layer are updated in the table.</li>
+</ul>
+<p>Right-click for context menu to:</p>
+<ul>
+<li>Toggle table columns on/off.</li>
+<li>Toggle shift+click to add a point to the layer (no need to switch viewer mode)</li>
+<li>Copy table to clipboard</li>
+</ul>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="napari_layer_table._my_widget.LayerTablePlugin" class="doc doc-heading">
+            <code>LayerTablePlugin</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="qtpy.QtWidgets.QWidget">QWidget</span></code></p>
+
+
+              <details class="quote">
+                <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span>
+<span class="normal">562</span>
+<span class="normal">563</span>
+<span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">LayerTablePlugin</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="n">acceptedLayers</span> <span class="o">=</span> <span class="p">(</span><span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Points</span><span class="p">,</span>
+                        <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Shapes</span><span class="p">,</span>
+                        <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Labels</span><span class="p">)</span>
+
+    <span class="c1"># TODO (cudmore) add this back in when we allow user edit of cell(s)</span>
+    <span class="n">ltp_signalDataChanged</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit signal to the external code when user adds and deletes items.</span>
+<span class="sd">       Emits:</span>
+<span class="sd">           (str) event type which can be &quot;add&quot;, &quot;move&quot; or &quot;delete&quot; </span>
+<span class="sd">            (pd.DataFrame) for the edited row</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ltp_signalEditedRows</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Signal emited after user edited table data and we accepted it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rows (List[int])</span>
+<span class="sd">        df (df.DataFrame)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">napari_viewer</span> <span class="p">:</span> <span class="n">napari</span><span class="o">.</span><span class="n">Viewer</span><span class="p">,</span>
+                    <span class="n">oneLayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">onAddCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A widget to display a layer as a table.</span>
+
+<span class="sd">        Allows bi-directional selection and editing.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            viewer (napari.Viewer): Existing napari viewer.</span>
+<span class="sd">            oneLayer (layer): If given then connect to this one layer,</span>
+<span class="sd">                            otherwise, connect to all existing layers.</span>
+<span class="sd">            onAddCallback (func) function is called on shift+click</span>
+<span class="sd">                params(set, pd.DataFrame)</span>
+<span class="sd">                return Union[None, dict]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If napari_viewer does not have a valid selected layer.</span>
+<span class="sd">                Designed to work with (points, shapes, labels) layers.</span>
+<span class="sd">                and to work with one Napari layer.</span>
+
+<span class="sd">        TODO (cudmore) check params and return of onAddCallback</span>
+<span class="sd">            takes a string and returns ???</span>
+
+<span class="sd">        TODO (cudmore) once we are created with an accpeted layer.</span>
+<span class="sd">            Need to close the plugin (?) if user deletes the layer?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
+            <span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span>
+            <span class="n">category</span><span class="o">=</span><span class="ne">FutureWarning</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span> <span class="o">=</span> <span class="n">napari_viewer</span>
+
+        <span class="k">if</span> <span class="n">oneLayer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">oneLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findActiveLayers</span><span class="p">()</span>
+
+        <span class="c1"># if oneLayer is None:</span>
+        <span class="c1">#     logger.error(f&#39;did not find a layer ???&#39;)</span>
+
+        <span class="c1"># _myLayer is from our class hierarchy to fix interface problems</span>
+        <span class="c1">#   with variable layers in napari</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">Points</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">pointsLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">shapes</span><span class="o">.</span><span class="n">shapes</span><span class="o">.</span><span class="n">Shapes</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">shapesLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">Labels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">labelLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># ERROR</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did not understand layer of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expecting a viewer with an active layer in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="c1">#self._layer = oneLayer</span>
+        <span class="c1"># actual napari layer</span>
+
+        <span class="c1"># we have layer in our list of &#39;acceptedLayers&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">signalDataChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_data_change</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">signalLayerNameChange</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_name_change</span><span class="p">)</span>
+
+        <span class="c1"># used to halt callbacks to prevent signal/slot recursion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle point properties columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle point coordinates columns (z,y,x)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Toggle new points on shift+click</span>
+        <span class="c1">#self._showFaceColor = True</span>
+
+        <span class="c1"># If True, will not switch to different layer</span>
+        <span class="c1">#self._onlyOneLayer = oneLayer is not None</span>
+
+        <span class="c1">#self.myTable = None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initGui</span><span class="p">()</span>  <span class="c1"># order matters, connectLayer() is accessing table</span>
+                        <span class="c1"># but table has to first be created</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_name_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+
+        <span class="c1"># key binding are confusing</span>
+        <span class="c1"># i want keyboard &#39;a&#39; to toggle selected row, &#39;accept&#39; column</span>
+        <span class="c1">#self.setFocusPolicy(QtCore.Qt.StrongFocus)</span>
+        <span class="c1">#self._viewer.bind_key(&#39;i&#39;, self._key_i_pressed)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>  <span class="c1"># refresh entire table</span>
+
+    <span class="c1"># no work</span>
+    <span class="c1"># def keyPressEvent(self, event):</span>
+    <span class="c1">#     logger.info(&#39;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!&#39;)</span>
+
+    <span class="c1">#@self.viewer.bind_key(&#39;i&#39;)</span>
+    <span class="c1"># def _key_i_pressed(self, viewer):</span>
+    <span class="c1">#     logger.info(&#39;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!&#39;)</span>
+
+    <span class="k">def</span> <span class="nf">getTableView</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get underlying QTableView.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span>
+
+    <span class="k">def</span> <span class="nf">newOnShiftClick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggle shift+click for new.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">newOnShiftClick</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">slot2_layer_data_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span> <span class="p">:</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">selection</span> <span class="p">:</span> <span class="nb">set</span><span class="p">,</span>
+                        <span class="n">layerSelectionCopy</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                        <span class="n">df</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Respond to user interface change through liazon myLayer.</span>
+
+<span class="sd">            TODO (cudmore) data is not used???</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        logger.info(&#39;&#39;)</span>
+<span class="sd">        print(&#39;    action:&#39;, action)</span>
+<span class="sd">        print(&#39;    selection:&#39;, selection)</span>
+<span class="sd">        print(&#39;    data:&#39;, data)</span>
+<span class="sd">        print(&#39;    df:&#39;)</span>
+<span class="sd">        pprint(df)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;select&#39;</span><span class="p">:</span>
+            <span class="c1"># TODO (cudmore) if Layer is labaeled then selection is a list</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">selection</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectInTable</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;add&#39;</span><span class="p">:</span>
+            <span class="c1">#addedRowList = selection</span>
+            <span class="c1">#myTableData = self.getLayerDataFrame(rowList=addedRowList)</span>
+            <span class="n">myTableData</span> <span class="o">=</span> <span class="n">df</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">myAppendRow</span><span class="p">(</span><span class="n">myTableData</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectInTable</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;delete&#39;</span><span class="p">:</span>
+            <span class="c1"># was this</span>
+            <span class="n">deleteRowSet</span> <span class="o">=</span> <span class="n">selection</span>
+            <span class="c1">#logger.info(f&#39;myEventType:{myEventType} deleteRowSet:{deleteRowSet}&#39;)</span>
+            <span class="c1">#deletedDataFrame = self.myTable2.myModel.myGetData().iloc[list(deleteRowSet)]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_deleteRows</span><span class="p">(</span><span class="n">deleteRowSet</span><span class="p">)</span>
+
+            <span class="c1">#self._blockDeleteFromTable = True</span>
+            <span class="c1">#self.myTable2.myModel.myDeleteRows(deleteRowList)</span>
+            <span class="c1">#self._blockDeleteFromTable = False</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;change&#39;</span><span class="p">:</span>
+            <span class="n">moveRowList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span> <span class="c1">#rowList is actually indexes</span>
+            <span class="n">myTableData</span> <span class="o">=</span> <span class="n">df</span>
+            <span class="c1">#myTableData = self.getLayerDataFrame(rowList=moveRowList)</span>
+
+            <span class="c1"># this is what I call on a keystroke like &#39;a&#39; for accept but interface is not updated???</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">mySetRow</span><span class="p">(</span><span class="n">moveRowList</span><span class="p">,</span> <span class="n">myTableData</span><span class="p">,</span> <span class="n">ignoreAccept</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;!!! we emit ltp_signalDataChanged but it is not connected to anybody&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;did not understand action: &quot;</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">slot2_layer_name_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+        <span class="c1">#logger.info(f&#39;name is now: {name}&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layerNameLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initGui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># main vertical layout</span>
+        <span class="n">vbox_layout</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="c1"># one row of controls</span>
+        <span class="n">controls_hbox_layout</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+
+        <span class="c1"># full refresh of table</span>
+        <span class="c1"># refreshButton = QtWidgets.QPushButton(&#39;Refresh&#39;)</span>
+        <span class="c1"># refreshButton.setToolTip(&#39;Refresh the entire table&#39;)</span>
+        <span class="c1"># refreshButton.clicked.connect(self.on_refresh_button)</span>
+        <span class="c1"># controls_hbox_layout.addWidget(refreshButton)</span>
+
+        <span class="c1"># bring layer to front in napari viewer</span>
+        <span class="c1">#if self._onlyOneLayer:</span>
+        <span class="n">bringToFrontButton</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">bringToFrontButton</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="s1">&#39;Bring layer to front&#39;</span><span class="p">)</span>
+        <span class="c1"># want to set an icon, temporary use built in is SP_TitleBarNormalButton</span>
+        <span class="c1">#TODO (cudmore) install our own .svg icons, need to use .qss file</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">()</span>
+        <span class="n">bringToFrontButton</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span>
+                    <span class="n">style</span><span class="o">.</span><span class="n">standardIcon</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_FileIcon</span><span class="p">))</span>
+
+        <span class="n">bringToFrontButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_bring_to_front_button</span><span class="p">)</span>
+        <span class="n">controls_hbox_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">bringToFrontButton</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">)</span>
+
+        <span class="c1"># TODO: not implemented</span>
+        <span class="c1"># undoButton = QtWidgets.QPushButton(&#39;Undo&#39;)</span>
+        <span class="c1"># undoButton.setToolTip(&#39;Undo&#39;)</span>
+        <span class="c1"># # want to set an icon, temporary use built in is SP_TitleBarNormalButton</span>
+        <span class="c1"># #TODO (cudmore) install our own .svg icons, need to use .qss file</span>
+        <span class="c1"># style = self.style()</span>
+        <span class="c1"># #undoButton.setIcon(</span>
+        <span class="c1"># #            style.standardIcon(QtWidgets.QStyle.SP_BrowserReload))</span>
+
+        <span class="c1"># undoButton.clicked.connect(self.on_undo_button)</span>
+        <span class="c1"># controls_hbox_layout.addWidget(undoButton)</span>
+
+        <span class="c1"># the current layer name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layerNameLabel</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">controls_hbox_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layerNameLabel</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">)</span>
+
+        <span class="n">controls_hbox_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="n">vbox_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">controls_hbox_layout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span> <span class="o">=</span> <span class="n">myTableView</span><span class="p">()</span>
+        <span class="c1">#self.myTable2.setFontSize(11)</span>
+        <span class="c1"># to pass selections in table back to the viewer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">signalSelectionChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_selection_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mtv_signalEditingRows</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_editingRows</span><span class="p">)</span>
+        <span class="c1"># Important: we need to disconnect this signal if we have</span>
+        <span class="c1"># a dedicated backend with data and table is a copy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalEditedRows</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">slot_editedRows</span><span class="p">)</span>
+
+        <span class="n">vbox_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="p">)</span>
+
+        <span class="c1"># finalize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">vbox_layout</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_findActiveLayers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find pre-existing selected layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">layer</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">active</span><span class="p">:</span>
+                    <span class="c1"># connect to existing active layer</span>
+                    <span class="k">return</span> <span class="n">layer</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">old_on_refresh_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO: need to preserve &#39;accept&#39; column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_bring_to_front_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bring the layer to the front in napari viewer.</span>
+
+<span class="sd">        TODO (cudmore): update to _my_layer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">bringToFront</span><span class="p">()</span>
+        <span class="c1">#if self._viewer.layers.selection.active != self._myLayer:</span>
+        <span class="c1">#    #print(&#39;  seting layer in viewer&#39;)</span>
+        <span class="c1">#    self._viewer.layers.selection.active = self._myLayer</span>
+
+    <span class="k">def</span> <span class="nf">old_on_undo_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">doUndo</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">connectLayer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to one layer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            layer (layer): Layer to connect to.</span>
+
+<span class="sd">        TODO:</span>
+<span class="sd">            Need to handle layer=None and just empty the interface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;TODO (cudmore) need to refactor this !!!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;  basically all calls to connect have to go through our layer heirarchy in _my_layer ...&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+        <span class="c1">#if layer is None:</span>
+        <span class="c1">#    return</span>
+
+        <span class="k">if</span> <span class="n">layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;layer with type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="si">}</span><span class="s1"> was not in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connecting to layer &quot;</span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># disconnect from existing (previous) layer</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_symbol</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">highlight</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_highlight</span><span class="p">)</span>
+
+            <span class="c1"># special case</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">face_color</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">_face</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">current_color</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="o">=</span> <span class="n">layer</span>
+
+        <span class="c1"># if layer is None, hide interface</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no layer selection ,hiding interface&#39;</span><span class="p">)</span>
+            <span class="c1"># TODO (cudmore) the following is not needed, just hide the widget</span>
+            <span class="c1">#emptyDataFrame = pd.DataFrame()</span>
+            <span class="c1"># set name to &#39;&#39;</span>
+            <span class="c1">#self.layerNameLabel.setText(&#39;&#39;)</span>
+            <span class="c1"># set table to empty</span>
+            <span class="c1">#self._refreshTableData(emptyDataFrame)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="c1"># display the name of the layer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layerNameLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># AttributeError: &#39;pointsLayer&#39; object has no attribute &#39;events&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_symbol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">highlight</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_highlight</span><span class="p">)</span>
+
+        <span class="c1"># this does not call our callback ... bug in napari???</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">face_color</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+        <span class="c1"># this works but layer is not updated yet</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">_face</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">current_color</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="c1"># important: when user switches layers, napari does not visually switch selections?</span>
+        <span class="c1"># but the layer does remember it. Set it to empty set()</span>
+        <span class="c1"># otherwise our interface would re-select the previous selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">selected_data</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectedData</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateMouseCallbacks</span><span class="p">()</span>
+
+        <span class="c1"># TODO: remove this, should by part of map manager</span>
+        <span class="c1"># leaving it here as proof-of-concept</span>
+        <span class="c1">#self._myLayer.mouse_wheel_callbacks.append(self.on_mouse_wheel)</span>
+
+        <span class="c1"># full refresh of table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Refresh entire table with current layer.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This refreshes entire table (slow).</span>
+<span class="sd">            Should only be used on table creation and layer switching.</span>
+<span class="sd">            Do not use for edits like add, delete, change/move.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#layerDataFrame = self.getLayerDataFrame()</span>
+        <span class="n">layerDataFrame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getDataFrame</span><span class="p">(</span><span class="n">getFull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refreshTableData</span><span class="p">(</span><span class="n">layerDataFrame</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_refreshTableData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Refresh all data in table by setting its data model from provided dataframe.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pd.DataFrame): Pandas dataframe to refresh with.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># interface has not been initialized</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Full refresh ... limit use of this&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;refreshing from df:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="n">myModel</span> <span class="o">=</span> <span class="n">pandasModel</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetModel</span><span class="p">(</span><span class="n">myModel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">contextMenuEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show a context menu on mouse right-click.</span>
+
+<span class="sd">        This is an inherited function of QWidget.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create the menu</span>
+        <span class="n">contextMenu</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QMenu</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># add menu item actions</span>
+        <span class="n">showCoordinates</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">)</span>
+        <span class="n">showCoordinates</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">showCoordinates</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span><span class="p">)</span>
+
+        <span class="n">showProperties</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Properties&quot;</span><span class="p">)</span>
+        <span class="n">showProperties</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">showProperties</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span><span class="p">)</span>
+
+        <span class="c1">#showFaceColor = contextMenu.addAction(&quot;Face Color&quot;)</span>
+        <span class="c1">#showFaceColor.setCheckable(True)</span>
+        <span class="c1">#showFaceColor.setChecked(self._showFaceColor)</span>
+
+        <span class="n">contextMenu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+        <span class="n">shiftClickForNew</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Shift+Click for new&quot;</span><span class="p">)</span>
+        <span class="n">shiftClickForNew</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">shiftClickForNew</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span><span class="p">)</span>
+
+        <span class="c1">#contextMenu.addSeparator()</span>
+        <span class="n">copyTable</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Copy Table To Clipboard&quot;</span><span class="p">)</span>
+
+        <span class="n">contextMenu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+        <span class="c1"># all columns in pandas data model</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">getColumns</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">isHidden</span> <span class="o">=</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">hiddenColumnSet</span>
+            <span class="n">columnAction</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+            <span class="n">columnAction</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">columnAction</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="ow">not</span> <span class="n">isHidden</span><span class="p">)</span>
+
+        <span class="c1"># all properties in pandas data</span>
+        <span class="c1"># these are part of columns</span>
+
+        <span class="c1"># show the popup menu</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">exec_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapToGlobal</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()))</span>
+
+        <span class="c1"># take action</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">showCoordinates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hideColumns</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">showProperties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hideColumns</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">())</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">shiftClickForNew</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span>    
+            <span class="c1">#self._updateMouseCallbacks()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">_updateMouseCallbacks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">copyTable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">myCopyTable</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># show/hide individual comuns</span>
+            <span class="n">column</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="n">hidden</span> <span class="o">=</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">hiddenColumnSet</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="ow">not</span> <span class="n">hidden</span><span class="p">)</span>  <span class="c1"># toggle hidden</span>
+
+        <span class="c1">#elif action is not None:</span>
+        <span class="c1">#    logger.warning(f&#39;action not taken &quot;{action.text()}&quot;&#39;)</span>
+
+    <span class="k">def</span> <span class="nf">hideColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columnType</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hidden</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hide different sets of columns.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columnType (str): from</span>
+<span class="sd">                - &#39;coordinates&#39;: Show or hide (z, y, x) columns.</span>
+<span class="sd">                - &#39;properties&#39;: Show or hide all layer property key columns.</span>
+<span class="sd">            hidden (bool): If true then column will be hidden, otherwise show.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;columnType:</span><span class="si">{</span><span class="n">columnType</span><span class="si">}</span><span class="s1"> hidden:</span><span class="si">{</span><span class="n">hidden</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">columnType</span> <span class="o">==</span> <span class="s1">&#39;coordinates&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">columnType</span> <span class="o">==</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="nb">property</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;did not understand columnType:</span><span class="si">{</span><span class="n">columnType</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">selectInTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected_data</span> <span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select in table in response to viewer (add, highlight).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            selected_data (set[int]): Set of selected rows to select</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span><span class="p">:</span>
+            <span class="c1">#self._blockDeleteFromTable = False</span>
+            <span class="k">return</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;selected_data: </span><span class="si">{</span><span class="n">selected_data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySelectRows</span><span class="p">(</span><span class="n">selected_data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">slot_selection_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selectedRowList</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">isAlt</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Respond to user selecting a table row.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            - This is coming from user selection in table,</span>
+<span class="sd">                we do not want to propogate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span><span class="p">:</span>
+            <span class="c1">#self._blockDeleteFromTable = False</span>
+            <span class="k">return</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;selectedRowList: </span><span class="si">{</span><span class="n">selectedRowList</span><span class="si">}</span><span class="s1"> isAlt:</span><span class="si">{</span><span class="n">isAlt</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">selectedRowSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">selectedRowList</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">selectItems</span><span class="p">(</span><span class="n">selectedRowSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># if only one row selected then snap z of the image layer</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectedRowList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">selectedRow</span> <span class="o">=</span> <span class="n">selectedRowList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the first row selection</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">snapToItem</span><span class="p">(</span><span class="n">selectedRow</span><span class="p">,</span> <span class="n">isAlt</span><span class="p">)</span>
+
+        <span class="c1"># TODO (cudmore) getDataFrame is getting from self._myLayer.selected_Data</span>
+        <span class="c1"># is this always the same as selectedRowSet?</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getDataFrame</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;select&#39;</span><span class="p">,</span> <span class="n">selectedRowSet</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">slot_editingRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowList</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">df</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Respond to user editing table rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  CONNECTED TO self.myTable2.mtv_signalEditingRows&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  received rowList and df as follows&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  rowList:&#39;</span><span class="p">,</span> <span class="n">rowList</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  df:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  --&gt;&gt; NOW emit ltp_signalEditedRows&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalEditedRows</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">rowList</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_deleteRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span> <span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">myDeleteRows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.ltp_signalDataChanged" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ltp_signalDataChanged</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Emit signal to the external code when user adds and deletes items.
+Emits:
+    (str) event type which can be "add", "move" or "delete" 
+     (pd.DataFrame) for the edited row</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.ltp_signalEditedRows" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ltp_signalEditedRows</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Signal emited after user edited table data and we accepted it.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">napari_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>A widget to display a layer as a table.</p>
+<p>Allows bi-directional selection and editing.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>viewer</code></td>
+            <td>
+                  <code><span title="napari.Viewer">Viewer</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Existing napari viewer.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>oneLayer</code></td>
+            <td>
+                  <code>layer</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If given then connect to this one layer,
+            otherwise, connect to all existing layers.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>ValueError</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If napari_viewer does not have a valid selected layer.
+Designed to work with (points, shapes, labels) layers.
+and to work with one Napari layer.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+      <p>TODO (cudmore) check params and return of onAddCallback
+    takes a string and returns ???</p>
+<p>TODO (cudmore) once we are created with an accpeted layer.
+    Need to close the plugin (?) if user deletes the layer?</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">napari_viewer</span> <span class="p">:</span> <span class="n">napari</span><span class="o">.</span><span class="n">Viewer</span><span class="p">,</span>
+                <span class="n">oneLayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">onAddCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A widget to display a layer as a table.</span>
+
+<span class="sd">    Allows bi-directional selection and editing.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        viewer (napari.Viewer): Existing napari viewer.</span>
+<span class="sd">        oneLayer (layer): If given then connect to this one layer,</span>
+<span class="sd">                        otherwise, connect to all existing layers.</span>
+<span class="sd">        onAddCallback (func) function is called on shift+click</span>
+<span class="sd">            params(set, pd.DataFrame)</span>
+<span class="sd">            return Union[None, dict]</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If napari_viewer does not have a valid selected layer.</span>
+<span class="sd">            Designed to work with (points, shapes, labels) layers.</span>
+<span class="sd">            and to work with one Napari layer.</span>
+
+<span class="sd">    TODO (cudmore) check params and return of onAddCallback</span>
+<span class="sd">        takes a string and returns ???</span>
+
+<span class="sd">    TODO (cudmore) once we are created with an accpeted layer.</span>
+<span class="sd">        Need to close the plugin (?) if user deletes the layer?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span>
+        <span class="n">category</span><span class="o">=</span><span class="ne">FutureWarning</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span> <span class="o">=</span> <span class="n">napari_viewer</span>
+
+    <span class="k">if</span> <span class="n">oneLayer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">oneLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findActiveLayers</span><span class="p">()</span>
+
+    <span class="c1"># if oneLayer is None:</span>
+    <span class="c1">#     logger.error(f&#39;did not find a layer ???&#39;)</span>
+
+    <span class="c1"># _myLayer is from our class hierarchy to fix interface problems</span>
+    <span class="c1">#   with variable layers in napari</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">Points</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">pointsLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">shapes</span><span class="o">.</span><span class="n">shapes</span><span class="o">.</span><span class="n">Shapes</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">shapesLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">,</span> <span class="n">napari</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">Labels</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="n">_my_layer</span><span class="o">.</span><span class="n">labelLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewer</span><span class="p">,</span> <span class="n">oneLayer</span><span class="p">,</span> <span class="n">onAddCallback</span><span class="o">=</span><span class="n">onAddCallback</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># ERROR</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did not understand layer of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">oneLayer</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expecting a viewer with an active layer in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span>
+
+    <span class="c1">#self._layer = oneLayer</span>
+    <span class="c1"># actual napari layer</span>
+
+    <span class="c1"># we have layer in our list of &#39;acceptedLayers&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">signalDataChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_data_change</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">signalLayerNameChange</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_name_change</span><span class="p">)</span>
+
+    <span class="c1"># used to halt callbacks to prevent signal/slot recursion</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle point properties columns</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle point coordinates columns (z,y,x)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Toggle new points on shift+click</span>
+    <span class="c1">#self._showFaceColor = True</span>
+
+    <span class="c1"># If True, will not switch to different layer</span>
+    <span class="c1">#self._onlyOneLayer = oneLayer is not None</span>
+
+    <span class="c1">#self.myTable = None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_initGui</span><span class="p">()</span>  <span class="c1"># order matters, connectLayer() is accessing table</span>
+                    <span class="c1"># but table has to first be created</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">slot2_layer_name_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+
+    <span class="c1"># key binding are confusing</span>
+    <span class="c1"># i want keyboard &#39;a&#39; to toggle selected row, &#39;accept&#39; column</span>
+    <span class="c1">#self.setFocusPolicy(QtCore.Qt.StrongFocus)</span>
+    <span class="c1">#self._viewer.bind_key(&#39;i&#39;, self._key_i_pressed)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>  <span class="c1"># refresh entire table</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.connectLayer" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">connectLayer</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Connect to one layer.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>layer</code></td>
+            <td>
+                  <code>layer</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Layer to connect to.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="todo" open>
+  <summary>TODO</summary>
+  <p>Need to handle layer=None and just empty the interface</p>
+</details>
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">connectLayer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Connect to one layer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        layer (layer): Layer to connect to.</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        Need to handle layer=None and just empty the interface</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;TODO (cudmore) need to refactor this !!!&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;  basically all calls to connect have to go through our layer heirarchy in _my_layer ...&#39;</span><span class="p">)</span>
+    <span class="k">return</span>
+
+    <span class="c1">#if layer is None:</span>
+    <span class="c1">#    return</span>
+
+    <span class="k">if</span> <span class="n">layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;layer with type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="si">}</span><span class="s1"> was not in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedLayers</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connecting to layer &quot;</span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># disconnect from existing (previous) layer</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_symbol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">highlight</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_highlight</span><span class="p">)</span>
+
+        <span class="c1"># special case</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">face_color</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">_face</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">current_color</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="o">=</span> <span class="n">layer</span>
+
+    <span class="c1"># if layer is None, hide interface</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no layer selection ,hiding interface&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO (cudmore) the following is not needed, just hide the widget</span>
+        <span class="c1">#emptyDataFrame = pd.DataFrame()</span>
+        <span class="c1"># set name to &#39;&#39;</span>
+        <span class="c1">#self.layerNameLabel.setText(&#39;&#39;)</span>
+        <span class="c1"># set table to empty</span>
+        <span class="c1">#self._refreshTableData(emptyDataFrame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># display the name of the layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">layerNameLabel</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># AttributeError: &#39;pointsLayer&#39; object has no attribute &#39;events&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_symbol</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_size</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">highlight</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_highlight</span><span class="p">)</span>
+
+    <span class="c1"># this does not call our callback ... bug in napari???</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">face_color</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+    <span class="c1"># this works but layer is not updated yet</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">_face</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">current_color</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_user_edit_face_color</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="c1"># important: when user switches layers, napari does not visually switch selections?</span>
+    <span class="c1"># but the layer does remember it. Set it to empty set()</span>
+    <span class="c1"># otherwise our interface would re-select the previous selection</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">selected_data</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_selectedData</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_updateMouseCallbacks</span><span class="p">()</span>
+
+    <span class="c1"># TODO: remove this, should by part of map manager</span>
+    <span class="c1"># leaving it here as proof-of-concept</span>
+    <span class="c1">#self._myLayer.mouse_wheel_callbacks.append(self.on_mouse_wheel)</span>
+
+    <span class="c1"># full refresh of table</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.contextMenuEvent" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">contextMenuEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Show a context menu on mouse right-click.</p>
+<p>This is an inherited function of QWidget.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">contextMenuEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show a context menu on mouse right-click.</span>
+
+<span class="sd">    This is an inherited function of QWidget.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># create the menu</span>
+    <span class="n">contextMenu</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QMenu</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># add menu item actions</span>
+    <span class="n">showCoordinates</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">)</span>
+    <span class="n">showCoordinates</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">showCoordinates</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span><span class="p">)</span>
+
+    <span class="n">showProperties</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Properties&quot;</span><span class="p">)</span>
+    <span class="n">showProperties</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">showProperties</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span><span class="p">)</span>
+
+    <span class="c1">#showFaceColor = contextMenu.addAction(&quot;Face Color&quot;)</span>
+    <span class="c1">#showFaceColor.setCheckable(True)</span>
+    <span class="c1">#showFaceColor.setChecked(self._showFaceColor)</span>
+
+    <span class="n">contextMenu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">shiftClickForNew</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Shift+Click for new&quot;</span><span class="p">)</span>
+    <span class="n">shiftClickForNew</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">shiftClickForNew</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span><span class="p">)</span>
+
+    <span class="c1">#contextMenu.addSeparator()</span>
+    <span class="n">copyTable</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Copy Table To Clipboard&quot;</span><span class="p">)</span>
+
+    <span class="n">contextMenu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+
+    <span class="c1"># all columns in pandas data model</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">getColumns</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">isHidden</span> <span class="o">=</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">hiddenColumnSet</span>
+        <span class="n">columnAction</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        <span class="n">columnAction</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">columnAction</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="ow">not</span> <span class="n">isHidden</span><span class="p">)</span>
+
+    <span class="c1"># all properties in pandas data</span>
+    <span class="c1"># these are part of columns</span>
+
+    <span class="c1"># show the popup menu</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">contextMenu</span><span class="o">.</span><span class="n">exec_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapToGlobal</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()))</span>
+
+    <span class="c1"># take action</span>
+    <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">showCoordinates</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_showCoordinates</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hideColumns</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">showProperties</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_showProperties</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hideColumns</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">action</span><span class="o">.</span><span class="n">isChecked</span><span class="p">())</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">shiftClickForNew</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span>    
+        <span class="c1">#self._updateMouseCallbacks()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">_updateMouseCallbacks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shift_click_for_new</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">copyTable</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">myCopyTable</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># show/hide individual comuns</span>
+        <span class="n">column</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">hiddenColumnSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="ow">not</span> <span class="n">hidden</span><span class="p">)</span>  <span class="c1"># toggle hidden</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.getTableView" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">getTableView</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Get underlying QTableView.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">getTableView</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get underlying QTableView.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.hideColumns" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">hideColumns</span><span class="p">(</span><span class="n">columnType</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Hide different sets of columns.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>columnType</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>from
+- 'coordinates': Show or hide (z, y, x) columns.
+- 'properties': Show or hide all layer property key columns.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>hidden</code></td>
+            <td>
+                  <code>bool</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If true then column will be hidden, otherwise show.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">hideColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columnType</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hidden</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hide different sets of columns.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        columnType (str): from</span>
+<span class="sd">            - &#39;coordinates&#39;: Show or hide (z, y, x) columns.</span>
+<span class="sd">            - &#39;properties&#39;: Show or hide all layer property key columns.</span>
+<span class="sd">        hidden (bool): If true then column will be hidden, otherwise show.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;columnType:</span><span class="si">{</span><span class="n">columnType</span><span class="si">}</span><span class="s1"> hidden:</span><span class="si">{</span><span class="n">hidden</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">columnType</span> <span class="o">==</span> <span class="s1">&#39;coordinates&#39;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">columnType</span> <span class="o">==</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySetColumnHidden</span><span class="p">(</span><span class="nb">property</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;did not understand columnType:</span><span class="si">{</span><span class="n">columnType</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.newOnShiftClick" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">newOnShiftClick</span><span class="p">(</span><span class="n">on</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Toggle shift+click for new.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">newOnShiftClick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle shift+click for new.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">newOnShiftClick</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.old_on_refresh_button" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">old_on_refresh_button</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>TODO: need to preserve 'accept' column.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">old_on_refresh_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;TODO: need to preserve &#39;accept&#39; column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.on_bring_to_front_button" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_bring_to_front_button</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Bring the layer to the front in napari viewer.</p>
+<p>TODO (cudmore): update to _my_layer</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">on_bring_to_front_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bring the layer to the front in napari viewer.</span>
+
+<span class="sd">    TODO (cudmore): update to _my_layer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">bringToFront</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.refresh" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">refresh</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Refresh entire table with current layer.</p>
+
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>This refreshes entire table (slow).
+Should only be used on table creation and layer switching.
+Do not use for edits like add, delete, change/move.</p>
+</details>
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Refresh entire table with current layer.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        This refreshes entire table (slow).</span>
+<span class="sd">        Should only be used on table creation and layer switching.</span>
+<span class="sd">        Do not use for edits like add, delete, change/move.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#layerDataFrame = self.getLayerDataFrame()</span>
+    <span class="n">layerDataFrame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getDataFrame</span><span class="p">(</span><span class="n">getFull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_refreshTableData</span><span class="p">(</span><span class="n">layerDataFrame</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.selectInTable" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">selectInTable</span><span class="p">(</span><span class="n">selected_data</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Select in table in response to viewer (add, highlight).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>selected_data</code></td>
+            <td>
+                  <code>set[int]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Set of selected rows to select</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">selectInTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected_data</span> <span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select in table in response to viewer (add, highlight).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        selected_data (set[int]): Set of selected rows to select</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span><span class="p">:</span>
+        <span class="c1">#self._blockDeleteFromTable = False</span>
+        <span class="k">return</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;selected_data: </span><span class="si">{</span><span class="n">selected_data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">mySelectRows</span><span class="p">(</span><span class="n">selected_data</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.slot2_layer_data_change" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">slot2_layer_data_change</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">layerSelectionCopy</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Respond to user interface change through liazon myLayer.</p>
+<p>TODO (cudmore) data is not used???</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">slot2_layer_data_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span> <span class="p">:</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">selection</span> <span class="p">:</span> <span class="nb">set</span><span class="p">,</span>
+                    <span class="n">layerSelectionCopy</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                    <span class="n">df</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Respond to user interface change through liazon myLayer.</span>
+
+<span class="sd">        TODO (cudmore) data is not used???</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    logger.info(&#39;&#39;)</span>
+<span class="sd">    print(&#39;    action:&#39;, action)</span>
+<span class="sd">    print(&#39;    selection:&#39;, selection)</span>
+<span class="sd">    print(&#39;    data:&#39;, data)</span>
+<span class="sd">    print(&#39;    df:&#39;)</span>
+<span class="sd">    pprint(df)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;select&#39;</span><span class="p">:</span>
+        <span class="c1"># TODO (cudmore) if Layer is labaeled then selection is a list</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectInTable</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;add&#39;</span><span class="p">:</span>
+        <span class="c1">#addedRowList = selection</span>
+        <span class="c1">#myTableData = self.getLayerDataFrame(rowList=addedRowList)</span>
+        <span class="n">myTableData</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">myAppendRow</span><span class="p">(</span><span class="n">myTableData</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectInTable</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;delete&#39;</span><span class="p">:</span>
+        <span class="c1"># was this</span>
+        <span class="n">deleteRowSet</span> <span class="o">=</span> <span class="n">selection</span>
+        <span class="c1">#logger.info(f&#39;myEventType:{myEventType} deleteRowSet:{deleteRowSet}&#39;)</span>
+        <span class="c1">#deletedDataFrame = self.myTable2.myModel.myGetData().iloc[list(deleteRowSet)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deleteRows</span><span class="p">(</span><span class="n">deleteRowSet</span><span class="p">)</span>
+
+        <span class="c1">#self._blockDeleteFromTable = True</span>
+        <span class="c1">#self.myTable2.myModel.myDeleteRows(deleteRowList)</span>
+        <span class="c1">#self._blockDeleteFromTable = False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;change&#39;</span><span class="p">:</span>
+        <span class="n">moveRowList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span> <span class="c1">#rowList is actually indexes</span>
+        <span class="n">myTableData</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="c1">#myTableData = self.getLayerDataFrame(rowList=moveRowList)</span>
+
+        <span class="c1"># this is what I call on a keystroke like &#39;a&#39; for accept but interface is not updated???</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myTable2</span><span class="o">.</span><span class="n">myModel</span><span class="o">.</span><span class="n">mySetRow</span><span class="p">(</span><span class="n">moveRowList</span><span class="p">,</span> <span class="n">myTableData</span><span class="p">,</span> <span class="n">ignoreAccept</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;!!! we emit ltp_signalDataChanged but it is not connected to anybody&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;did not understand action: &quot;</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.slot_editingRows" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">slot_editingRows</span><span class="p">(</span><span class="n">rowList</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Respond to user editing table rows.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">slot_editingRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowList</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">df</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Respond to user editing table rows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  CONNECTED TO self.myTable2.mtv_signalEditingRows&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  received rowList and df as follows&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  rowList:&#39;</span><span class="p">,</span> <span class="n">rowList</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  df:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  --&gt;&gt; NOW emit ltp_signalEditedRows&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalEditedRows</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">rowList</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="napari_layer_table._my_widget.LayerTablePlugin.slot_selection_changed" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">slot_selection_changed</span><span class="p">(</span><span class="n">selectedRowList</span><span class="p">,</span> <span class="n">isAlt</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Respond to user selecting a table row.</p>
+
+
+<details class="note" open>
+  <summary>Note</summary>
+  <ul>
+<li>This is coming from user selection in table,
+    we do not want to propogate</li>
+</ul>
+</details>
+            <details class="quote">
+              <summary>Source code in <code>src/napari_layer_table/_my_widget.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span>
+<span class="normal">562</span>
+<span class="normal">563</span>
+<span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">slot_selection_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selectedRowList</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">isAlt</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Respond to user selecting a table row.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        - This is coming from user selection in table,</span>
+<span class="sd">            we do not want to propogate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockDeleteFromTable</span><span class="p">:</span>
+        <span class="c1">#self._blockDeleteFromTable = False</span>
+        <span class="k">return</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;selectedRowList: </span><span class="si">{</span><span class="n">selectedRowList</span><span class="si">}</span><span class="s1"> isAlt:</span><span class="si">{</span><span class="n">isAlt</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">selectedRowSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">selectedRowList</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">selectItems</span><span class="p">(</span><span class="n">selectedRowSet</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_blockUserTableSelection</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># if only one row selected then snap z of the image layer</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectedRowList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">selectedRow</span> <span class="o">=</span> <span class="n">selectedRowList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the first row selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">snapToItem</span><span class="p">(</span><span class="n">selectedRow</span><span class="p">,</span> <span class="n">isAlt</span><span class="p">)</span>
+
+    <span class="c1"># TODO (cudmore) getDataFrame is getting from self._myLayer.selected_Data</span>
+    <span class="c1"># is this always the same as selectedRowSet?</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_myLayer</span><span class="o">.</span><span class="n">getDataFrame</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ltp_signalDataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;select&#39;</span><span class="p">,</span> <span class="n">selectedRowSet</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
