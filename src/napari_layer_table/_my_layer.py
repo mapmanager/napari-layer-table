@@ -791,7 +791,7 @@ class pointsLayer(mmLayer):
                 'face_color': deepcopy(layer.face_color[index]),
                 'shown': deepcopy(layer.shown[index]),
                 'size': deepcopy(layer.size[index]),
-                'edge_width': deepcopy(layer.edge_width[index]),
+                'edge_width': deepcopy(layer.edge_width),
                 'features': deepcopy(layer.features.iloc[index]),
                 # 20240612
                 # AttributeError: 'Points' object has no attribute '_slice_indices'
